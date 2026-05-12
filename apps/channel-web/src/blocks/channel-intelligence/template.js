@@ -1,56 +1,9 @@
 import { escapeHtml } from "../../shared/lib/helpers.js";
 
-const buildEmptyContent = () => '<div class="channel-intelligence__empty">本周内容还不够，等帖子和评论跑起来后再生成周报。</div>';
-
-const buildDetailContent = (vm) => {
-    if (vm.status === "empty") {
-        return buildEmptyContent();
-    }
-
-    return `
-        <section class="channel-intelligence__section">
-            <div class="channel-intelligence__section-title">高频议题</div>
-            <div class="channel-intelligence__theme-list">
-                ${vm.topThemes.length ? vm.topThemes.map((theme) => `
-                    <div class="channel-intelligence__theme">
-                        <span>${escapeHtml(theme.label)}</span>
-                        <span>${escapeHtml(theme.mentionCount)}</span>
-                    </div>
-                `).join("") : '<div class="channel-intelligence__empty">目前还没有足够明显的重复议题。</div>'}
-            </div>
-        </section>
-        <section class="channel-intelligence__section">
-            <div class="channel-intelligence__section-title">代表帖子</div>
-            <div class="channel-intelligence__post-list">
-                ${vm.representativePosts.length ? vm.representativePosts.map((post) => `
-                    <button class="channel-intelligence__post" data-channel-intelligence-post-id="${post.id}" type="button">
-                        <div class="channel-intelligence__post-head">
-                            <span>${escapeHtml(post.authorName)}</span>
-                            <span>${escapeHtml(post.timeLabel)}</span>
-                        </div>
-                        <div class="channel-intelligence__post-body">${escapeHtml(post.previewText)}</div>
-                    </button>
-                `).join("") : '<div class="channel-intelligence__empty">还没有形成足够有代表性的帖子。</div>'}
-            </div>
-        </section>
-        <section class="channel-intelligence__section">
-            <div class="channel-intelligence__section-title">未解决问题</div>
-            <div class="channel-intelligence__question-list">
-                ${vm.openQuestions.length ? vm.openQuestions.map((item) => `
-                    <div class="channel-intelligence__question">
-                        <span class="channel-intelligence__question-author">${escapeHtml(item.authorName)}</span>
-                        <p>${escapeHtml(item.text)}</p>
-                    </div>
-                `).join("") : '<div class="channel-intelligence__empty">目前没有特别突出的悬而未决问题。</div>'}
-            </div>
-        </section>
-    `;
-};
-
 const buildGodPicker = (vm) => `
     <div class="channel-intelligence__picker ${vm.godPickerOpen ? "is-open" : ""}">
         ${vm.godOptions.map((member) => `
-            <button class="channel-intelligence__picker-option" data-channel-intelligence-god="${escapeHtml(member.name)}" data-channel-intelligence-avatar="${escapeHtml(member.avatar || "")}" type="button">
+            <button class="channel-intelligence__picker-option" data-channel-intelligence-god="${escapeHtml(member.name)}" data-channel-intelligence-avatar="${escapeHtml(member.avatar || "")}" data-channel-intelligence-user-id="${escapeHtml(member.userId || "")}" type="button">
                 <img alt="${escapeHtml(member.name)}" class="channel-intelligence__picker-avatar" src="${member.avatar}" />
                 <span>${escapeHtml(member.name)}</span>
             </button>
@@ -91,6 +44,156 @@ const buildRevealSummary = (vm) => `
     </div>
 `;
 
+const buildArchiveDetail = (archive) => archive ? `
+    <div class="channel-intelligence__archive-detail">
+        <div class="channel-intelligence__archive-stats">
+            <div class="channel-intelligence__archive-stat">
+                <span class="channel-intelligence__round-label">参与人数</span>
+                <strong>${escapeHtml(archive.stats?.totalMembers || 0)}</strong>
+            </div>
+            <div class="channel-intelligence__archive-stat">
+                <span class="channel-intelligence__round-label">猜测完成</span>
+                <strong>${escapeHtml(archive.stats?.guessDone || 0)}</strong>
+            </div>
+            <div class="channel-intelligence__archive-stat">
+                <span class="channel-intelligence__round-label">揭晓配对</span>
+                <strong>${escapeHtml(archive.stats?.pairCount || archive.revealPairs.length)}</strong>
+            </div>
+        </div>
+        <h4 class="channel-intelligence__section-title">揭晓配对</h4>
+        <div class="channel-intelligence__archive-pairs">
+            ${(archive.revealPairs || []).map((pair) => `
+                <article class="channel-intelligence__archive-pair">
+                    <div class="channel-intelligence__archive-pair-head">
+                        <div class="channel-intelligence__archive-person">
+                            ${pair.member?.avatar ? `<img alt="${escapeHtml(pair.member.name)}" class="channel-intelligence__round-avatar" src="${pair.member.avatar}" />` : ""}
+                            <span>${escapeHtml(pair.member?.name || "国王")}</span>
+                        </div>
+                        <span class="channel-intelligence__archive-arrow">→</span>
+                        <div class="channel-intelligence__archive-person">
+                            ${pair.angel?.avatar ? `<img alt="${escapeHtml(pair.angel.name)}" class="channel-intelligence__round-avatar" src="${pair.angel.avatar}" />` : ""}
+                            <span>${escapeHtml(pair.angel?.name || "天使")}</span>
+                        </div>
+                    </div>
+                    <div class="channel-intelligence__archive-copy">${escapeHtml(pair.wishPreview || "这位国王的愿望摘要还没保存进归档。")}</div>
+                    <div class="channel-intelligence__archive-guess">猜的是：${escapeHtml(pair.guessedAngelName || "未提交猜测")}</div>
+                </article>
+            `).join("")}
+        </div>
+        ${archive.forceArchiveReason ? `
+            <div class="channel-intelligence__archive-copy">强制归档原因：${escapeHtml(archive.forceArchiveReason)}</div>
+        ` : ""}
+    </div>
+` : "";
+
+const boardLabels = {
+    all: "闲聊",
+    wish: "许愿",
+    delivery: "交付",
+    guess: "猜测",
+    reveal: "揭晓",
+    archive: "归档"
+};
+
+const buildArchivePosts = (archive) => {
+    const posts = Array.isArray(archive?.posts) ? archive.posts : [];
+    if (!posts.length) {
+        return `<div class="channel-intelligence__archive-empty">这个归档暂时没有保存帖子明细。</div>`;
+    }
+
+    return `
+        <div class="channel-intelligence__archive-posts">
+            ${posts.map((post) => `
+                <article class="channel-intelligence__archive-post">
+                    <div class="channel-intelligence__archive-post-head">
+                        <span>${escapeHtml(boardLabels[post.board] || post.board || "内容")}</span>
+                        <span>${escapeHtml(post.authorName || post.adminRevealIdentity?.name || "匿名成员")}</span>
+                    </div>
+                    <div class="channel-intelligence__archive-copy">${escapeHtml(post.body || "这条内容没有正文。")}</div>
+                    ${(post.comments || []).length ? `
+                        <div class="channel-intelligence__archive-comments">
+                            ${(post.comments || []).map((comment) => `
+                                <div class="channel-intelligence__archive-comment">
+                                    <span>${escapeHtml(comment.authorName || "评论者")}</span>
+                                    <p>${escapeHtml(comment.body || "")}</p>
+                                </div>
+                            `).join("")}
+                        </div>
+                    ` : ""}
+                </article>
+            `).join("")}
+        </div>
+    `;
+};
+
+const buildArchiveDialog = (vm) => vm.archiveDetailOpen && vm.archiveDialogArchive ? `
+    <div class="channel-intelligence-dialog is-open" data-channel-intelligence-dialog="archive-detail" role="dialog" aria-modal="true" aria-label="往期回合详情">
+        <button class="channel-intelligence-dialog__backdrop" data-channel-intelligence-action="close-archive-detail" type="button" aria-label="关闭归档详情"></button>
+        <article class="channel-intelligence-dialog__panel">
+            <header class="channel-intelligence-dialog__header">
+                <div>
+                    <h3>${escapeHtml(vm.archiveDialogArchive.displayTitle)}</h3>
+                    <p>${escapeHtml(vm.archiveDialogArchive.metaLine)}</p>
+                    ${vm.archiveDialogArchive.archiveMode ? `
+                        <div class="channel-intelligence-dialog__metrics">${escapeHtml(
+        vm.archiveDialogArchive.archiveMode === "forced"
+            ? "强制归档"
+            : vm.archiveDialogArchive.archiveMode === "pre_restore"
+                ? "恢复前快照"
+                : vm.archiveDialogArchive.archiveMode === "legacy_summary"
+                    ? "仅摘要"
+                    : "正常归档"
+    )}</div>
+                    ` : ""}
+                </div>
+                <button class="channel-intelligence-dialog__close" data-channel-intelligence-action="close-archive-detail" type="button" aria-label="关闭">×</button>
+            </header>
+            <div class="channel-intelligence-dialog__body">
+                ${buildArchiveDetail(vm.archiveDialogArchive)}
+                ${vm.selectedArchiveViewOnlyLabel ? `
+                    <div class="channel-intelligence__archive-hint">${escapeHtml(vm.selectedArchiveViewOnlyLabel)}</div>
+                ` : ""}
+                <div class="channel-intelligence__archive-actions">
+                    <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="rename-archive" type="button">改标题</button>
+                    ${vm.archiveDialogArchive.isRestorable ? `
+                        <button class="channel-intelligence__action-button" data-channel-intelligence-action="restore-archive" type="button">恢复为当前</button>
+                    ` : ""}
+                    <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="view-archive-board" type="button">按板块查看</button>
+                    ${vm.archiveViewerActive ? `
+                        <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="exit-archive-viewer" type="button">返回当前回合</button>
+                    ` : ""}
+                </div>
+                <section class="channel-intelligence__section">
+                    <h4 class="channel-intelligence__section-title">帖子与评论</h4>
+                    ${buildArchivePosts(vm.archiveDialogArchive)}
+                </section>
+            </div>
+        </article>
+    </div>
+` : "";
+
+const buildArchives = (vm) => `
+    <section class="channel-intelligence__archives">
+        <div class="channel-intelligence__task-head">
+            <span>往期回合</span>
+            <span>${escapeHtml(vm.archives.length)}</span>
+        </div>
+        ${vm.archives.length ? `
+            <div class="channel-intelligence__archive-list">
+                ${vm.archives.map((archive) => `
+                    <button class="channel-intelligence__archive-card ${archive.isSelected ? "is-selected" : ""}" data-channel-intelligence-archive="${escapeHtml(archive.id)}" type="button">
+                        <span class="channel-intelligence__archive-title">${escapeHtml(archive.displayTitle)}</span>
+                        <span class="channel-intelligence__archive-meta">${escapeHtml(archive.metaLine)}</span>
+                        <span class="channel-intelligence__archive-open">查看详情</span>
+                    </button>
+                `).join("")}
+            </div>
+        ` : `
+            <div class="channel-intelligence__archive-empty">本轮结束后，右侧会自动生成一份回合归档，方便回看主题、上帝和揭晓结果。</div>
+        `}
+    </section>
+`;
+
 export const channelIntelligenceTemplate = (vm) => `
     <section class="channel-intelligence">
         <header class="channel-intelligence__header">
@@ -98,20 +201,19 @@ export const channelIntelligenceTemplate = (vm) => `
                 <div class="channel-intelligence__round-head">
                     <div>
                         <h3>本周回合</h3>
-                        <p>国王与天使</p>
+                    </div>
+                </div>
+                <div class="channel-intelligence__round-row ${vm.canManageRound ? "is-with-action" : ""}">
+                    <div class="channel-intelligence__round-copy">
+                        <span class="channel-intelligence__round-label">本周上帝</span>
+                        <div class="channel-intelligence__round-value ${vm.godProfile ? "has-avatar" : ""}">
+                            ${vm.godProfile ? `<img alt="${escapeHtml(vm.godProfile.name)}" class="channel-intelligence__round-avatar" src="${vm.godProfile.avatar}" />` : ""}
+                            <span>${escapeHtml(vm.godProfile?.name || "待指定")}</span>
+                        </div>
                     </div>
                     ${vm.canManageRound ? `
-                        <button class="channel-intelligence__open-button" data-channel-intelligence-action="toggle-god-picker" type="button" aria-label="指定本周上帝">
-                            <span class="material-icons-outlined">admin_panel_settings</span>
-                        </button>
+                        <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="toggle-god-picker" type="button">指定上帝</button>
                     ` : ""}
-                </div>
-                <div class="channel-intelligence__round-row">
-                    <span class="channel-intelligence__round-label">本周上帝</span>
-                    <div class="channel-intelligence__round-value ${vm.godProfile ? "has-avatar" : ""}">
-                        ${vm.godProfile ? `<img alt="${escapeHtml(vm.godProfile.name)}" class="channel-intelligence__round-avatar" src="${vm.godProfile.avatar}" />` : ""}
-                        <span>${escapeHtml(vm.godProfile?.name || "待指定")}</span>
-                    </div>
                 </div>
                 ${vm.canManageRound ? buildGodPicker(vm) : ""}
                 <div class="channel-intelligence__round-row ${vm.canEditTheme ? "is-with-action" : ""}">
@@ -132,33 +234,23 @@ export const channelIntelligenceTemplate = (vm) => `
                     <span class="channel-intelligence__round-label">截止时间</span>
                     <div class="channel-intelligence__round-value">${escapeHtml(vm.currentDeadlineLabel)}</div>
                 </div>
-                ${vm.currentStageLabel === "揭晓" || vm.revealPairs.length ? buildRevealSummary(vm) : ""}
+                ${vm.canManageRound ? `
+                    <div class="channel-intelligence__round-actions">
+                        <button class="channel-intelligence__action-button ${vm.canArchiveRound ? "" : "is-disabled"}" data-channel-intelligence-action="archive-current-round" ${vm.canArchiveRound ? "" : "disabled"} type="button">归档本轮</button>
+                        <button class="channel-intelligence__action-button is-quiet ${vm.canForceArchiveRound ? "" : "is-disabled"}" data-channel-intelligence-action="force-archive-current-round" ${vm.canForceArchiveRound ? "" : "disabled"} type="button">强制归档</button>
+                    </div>
+                ` : ""}
+                ${vm.showRevealSummary ? buildRevealSummary(vm) : ""}
             </section>
             <section class="channel-intelligence__task">
                 <div class="channel-intelligence__task-head">
                     <span>我的待办</span>
                     <span>${escapeHtml(vm.currentTaskStatus)}</span>
                 </div>
-                <div class="channel-intelligence__task-title">${escapeHtml(vm.currentStageLabel)}阶段</div>
+                <div class="channel-intelligence__task-title">${escapeHtml(vm.currentTaskStageLabel)}阶段</div>
             </section>
+            ${buildArchives(vm)}
         </header>
-        <div class="channel-intelligence-dialog ${vm.open ? "is-open" : ""}">
-            <div class="channel-intelligence-dialog__backdrop" data-channel-intelligence-action="close"></div>
-            <section class="channel-intelligence-dialog__panel" role="dialog" aria-modal="true" aria-label="频道周报详情">
-                <header class="channel-intelligence-dialog__header">
-                    <div>
-                        <h3>${escapeHtml(vm.title)}</h3>
-                        <p>${escapeHtml(vm.subtitle)}</p>
-                        <div class="channel-intelligence-dialog__metrics">${escapeHtml(vm.metricsLine)}</div>
-                    </div>
-                    <button class="channel-intelligence-dialog__close" data-channel-intelligence-action="close" type="button" aria-label="关闭频道周报详情">
-                        <span class="material-icons-outlined">close</span>
-                    </button>
-                </header>
-                <div class="channel-intelligence-dialog__body">
-                    ${buildDetailContent(vm)}
-                </div>
-            </section>
-        </div>
+        ${buildArchiveDialog(vm)}
     </section>
 `;

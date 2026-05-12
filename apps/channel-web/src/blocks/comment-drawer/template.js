@@ -55,7 +55,7 @@ export const commentDrawerTemplate = (vm) => `
                             <span class="comment-drawer__post-time">${escapeHtml(vm.post.dateLabel)}</span>
                             <span class="comment-drawer__post-time">浏览${escapeHtml(vm.post.views)}</span>
                         </div>
-                        ${vm.adminRevealAnonymous && vm.post.isAnonymous && vm.post.adminRevealIdentity ? `
+                        ${vm.post.showAdminReveal && vm.post.adminRevealIdentity ? `
                             <div class="comment-drawer__admin-reveal">
                                 <span class="comment-drawer__admin-reveal-label">真实身份</span>
                                 <img alt="${escapeHtml(vm.post.adminRevealIdentity.name)}" class="comment-drawer__admin-reveal-avatar" src="${vm.post.adminRevealIdentity.avatar}" />

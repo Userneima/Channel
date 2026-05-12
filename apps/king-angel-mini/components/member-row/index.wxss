@@ -1,0 +1,36 @@
+.member-row {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+    padding: 24rpx 0;
+    border-bottom: 1rpx solid rgba(45, 36, 27, 0.08);
+}
+
+.avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76rpx;
+    height: 76rpx;
+    border-radius: 50%;
+    background: #ded2bf;
+    color: #71593d;
+    font-size: 30rpx;
+    font-weight: 650;
+}
+
+.main {
+    min-width: 0;
+    flex: 1;
+}
+
+.name {
+    font-size: 29rpx;
+    font-weight: 600;
+}
+
+.role {
+    margin-top: 4rpx;
+    color: #8b7358;
+    font-size: 24rpx;
+}

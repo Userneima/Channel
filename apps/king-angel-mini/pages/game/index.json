@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "stage-progress": "../../components/stage-progress/index",
+    "task-card": "../../components/task-card/index"
+  },
+  "navigationBarTitleText": "游戏"
+}

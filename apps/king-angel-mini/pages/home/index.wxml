@@ -1,0 +1,28 @@
+<view class="page stack">
+  <view class="hero panel">
+    <view class="eyebrow">KING AND ANGEL</view>
+    <view class="title">把一轮国王与天使安静跑完</view>
+    <view class="muted">创建游戏，邀请朋友加入。小程序会告诉每个人当前该许愿、认领、交付、猜测，最后统一揭晓。</view>
+  </view>
+
+  <view class="panel form">
+    <input placeholder="新游戏名称" value="{{newGameName}}" bindinput="onGameNameInput" />
+    <button class="button" loading="{{loading}}" bindtap="createGame">创建游戏</button>
+  </view>
+
+  <view class="panel form">
+    <input placeholder="输入邀请口令" value="{{inviteCode}}" bindinput="onInviteInput" />
+    <button class="button ghost" loading="{{loading}}" bindtap="joinGame">加入游戏</button>
+  </view>
+
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+
+  <view class="section-title">我的游戏</view>
+  <block wx:if="{{games.length}}">
+    <view wx:for="{{games}}" wx:key="id" class="game-card panel" data-id="{{item.id}}" bindtap="openGame">
+      <view class="game-name">{{item.name}}</view>
+      <view class="muted">{{item.stageLabel}} · {{item.memberCount}} 人</view>
+    </view>
+  </block>
+  <empty-state wx:else title="还没有游戏" body="创建一局，或者用朋友发来的邀请口令加入。" />
+</view>

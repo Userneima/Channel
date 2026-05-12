@@ -1,2 +1,5 @@
 [functions.anonymous-anonymize]
 verify_jwt = false
+
+[functions.king-angel-mini-api]
+verify_jwt = false

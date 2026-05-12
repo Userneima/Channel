@@ -333,6 +333,14 @@ export const getChannelActionErrorMessage = (action, error) => {
         return "网络连接异常，请稍后再试。";
     }
 
+    if (
+        message.includes("请先应用最新 migration")
+        || message.includes("还没同步到数据库")
+        || message.includes("还没有初始化完成")
+    ) {
+        return message;
+    }
+
     const fallbackMap = {
         init_runtime: "频道初始化失败，请重新尝试。",
         init_create_channel: "创建频道页初始化失败，请刷新后重试。",
@@ -351,9 +359,13 @@ export const getChannelActionErrorMessage = (action, error) => {
         update_identity: "昵称或头像保存失败，请稍后重试。",
         update_channel: "频道资料保存失败，请稍后重试。",
         update_round_state: "本周主题或上帝保存失败，请稍后重试。",
+        archive_round: "回合归档失败，请稍后重试。",
+        restore_round_archive: "恢复归档失败，请稍后重试。",
+        rename_round_archive: "归档标题保存失败，请稍后重试。",
+        save_round_archive: "本轮已经结束，但归档保存失败，请稍后重试。",
         load_feed: "频道内容加载失败，请刷新或重试。",
         load_comments: "评论加载失败，请稍后重试。",
-        submit_join_request: "加入申请提交失败，请稍后重试。",
+        submit_join_request: "进入频道失败，请稍后重试。",
         load_membership_reviews: "待审核列表加载失败，请稍后重试。",
         approve_join_request: "通过申请失败，请稍后重试。",
         reject_join_request: "拒绝申请失败，请稍后重试。",

@@ -1,0 +1,14 @@
+{
+  "description": "King Angel Mini Program",
+  "appid": "touristappid",
+  "projectname": "king-angel-mini",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "latest"
+}

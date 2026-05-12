@@ -1,0 +1,7 @@
+<view class="page">
+  <view class="panel profile">
+    <view class="eyebrow">PROFILE</view>
+    <view class="title">{{session && session.user ? session.user.displayName : '微信玩家'}}</view>
+    <view class="muted">身份只用于加入游戏和最终揭晓。许愿与交付阶段会使用匿名身份展示。</view>
+  </view>
+</view>

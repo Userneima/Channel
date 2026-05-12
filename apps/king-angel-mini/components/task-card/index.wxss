@@ -1,0 +1,27 @@
+.task {
+    padding: 32rpx;
+}
+
+.status {
+    color: #967a56;
+    font-size: 24rpx;
+}
+
+.task-title {
+    margin-top: 12rpx;
+    font-size: 38rpx;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.task-meta,
+.blocked {
+    margin-top: 16rpx;
+    color: #766a5c;
+    font-size: 26rpx;
+    line-height: 1.6;
+}
+
+.button {
+    margin-top: 28rpx;
+}

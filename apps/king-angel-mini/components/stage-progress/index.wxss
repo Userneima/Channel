@@ -1,0 +1,21 @@
+.stage-progress {
+    display: flex;
+    gap: 8rpx;
+    padding: 8rpx;
+    border-radius: 999rpx;
+    background: rgba(45, 36, 27, 0.06);
+}
+
+.stage {
+    flex: 1;
+    padding: 14rpx 0;
+    border-radius: 999rpx;
+    color: #8b7358;
+    font-size: 22rpx;
+    text-align: center;
+}
+
+.stage.active {
+    background: #2d241b;
+    color: #fff8ea;
+}

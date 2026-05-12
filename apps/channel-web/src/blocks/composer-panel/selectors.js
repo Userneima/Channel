@@ -1,6 +1,8 @@
 import { channelBoardChoices, channelShellConfig, gameBoardStages } from "../../entities/channel/config.js";
-import { composerIdentityPresets, mentionMembers } from "../../entities/identity/config.js";
+import { composerIdentityPresets } from "../../entities/identity/config.js";
 import { composerCapabilityRegistry } from "../../features/composer/registry.js";
+import { buildChannelMemberOptions, buildRevealPairs, buildRevealResult, getRoundStage } from "../../features/round/model.js";
+import { anonymizeComposerText } from "../../shared/lib/helpers.js";
 
 const aiDisclosureChoices = [
     {
@@ -13,18 +15,36 @@ const aiDisclosureChoices = [
     }
 ];
 
-const stageByValue = new Map(gameBoardStages.map((stage) => [stage.value, stage]));
+const freeChatStage = {
+    value: "all",
+    label: "闲聊",
+    taskLabel: "匿名或实名随意聊聊",
+    deadlineLabel: "",
+    canCompose: true,
+    forceAnonymous: false,
+    requiresMention: false,
+    submitLabel: "发布闲聊",
+    placeholder: "匿名或实名都可以，随便聊聊当前想法...",
+    helperText: "这里是独立的闲聊板块，不会把内容发到后方回合板块里。"
+};
 
 export const selectComposerPanelVM = (state) => {
     const currentChannel = state.runtimeState.channel;
-    const stage = stageByValue.get(state.roundState.activeStage) || gameBoardStages[0];
+    const archiveViewer = state.roundState.archiveViewerRoundId ? state.roundState.archiveViewerDetail : null;
+    const activeBoard = state.feedState.activeBoard;
+    const isFreeChatBoard = activeBoard === "all";
+    const stage = isFreeChatBoard
+        ? freeChatStage
+        : (getRoundStage(archiveViewer?.currentStage || state.roundState.activeStage) || gameBoardStages[0]);
+    const isGuessBoard = activeBoard === "guess" || (!isFreeChatBoard && stage.value === "guess");
     const activeAlias = state.runtimeState.anonymousProfiles.find((profile) => profile.key === state.runtimeState.activeAliasKey)
         || state.runtimeState.anonymousProfiles[0];
     const claimSelection = state.roundState.claimSelection;
     const guessSelection = state.roundState.guessSelection;
+    const canChooseMentionTarget = stage.value === "guess";
     const effectiveMentionTarget = stage.requiresMention
         ? (
-            state.composerState.mentionTarget
+            (stage.value === "guess" && state.composerState.mentionTarget)
             || (stage.value === "delivery" && claimSelection
                 ? {
                     name: claimSelection.authorName,
@@ -47,7 +67,8 @@ export const selectComposerPanelVM = (state) => {
     const audioRecording = state.composerState.audioRecording;
     const authStatus = state.authState.status;
     const membershipStatus = state.membershipState.status;
-    const canCompose = membershipStatus === "approved" && authStatus === "authenticated";
+    const isReadOnlyRound = Boolean(state.roundState.archiveViewerRoundId) || state.roundState.lifecycleStatus === "archived";
+    const canCompose = !isReadOnlyRound && membershipStatus === "approved" && authStatus === "authenticated";
     const guestIdentityDisplay = {
         avatar: currentChannel?.logoUrl || channelShellConfig.channelLogo,
         name: "未登录",
@@ -57,61 +78,68 @@ export const selectComposerPanelVM = (state) => {
         ? {
             accessMode: "guest",
             title: "登录后才能发帖",
-            description: "现在可以先公开浏览，登录后再申请加入频道。",
-            placeholder: "登录后可申请加入频道，当前无法发内容",
+            description: "注册或登录后会自动加入当前频道，可直接发帖、评论和使用匿名马甲。",
+            placeholder: "登录后即可参与频道，当前无法发内容",
             primaryLabel: "邮箱登录",
             primaryAction: "open-auth-login"
         }
-        : membershipStatus === "pending"
-                ? {
-                    accessMode: "pending",
-                    title: "发帖权限等待审核",
-                    description: "管理员通过你的加入申请后，这里会自动恢复可编辑状态。",
-                    placeholder: "频道申请审核中，当前无法发内容",
-                    primaryLabel: "等待审核中",
-                    primaryAction: "noop"
-                }
-                : {
-                    accessMode: "unapproved",
-                    title: "先申请加入频道",
-                    description: membershipStatus === "rejected"
-                        ? "上次申请没有通过。你可以在上方补充申请说明后重新提交。"
-                        : "只有通过频道审核的成员，才能发帖、评论和使用匿名马甲。",
-                    placeholder: membershipStatus === "rejected"
-                        ? "申请未通过，当前无法发内容"
-                        : "未加入频道，当前无法发内容",
-                    primaryLabel: membershipStatus === "rejected" ? "重新申请" : "提交加入申请",
-                    primaryAction: "submit-join-request"
-                };
+        : authStatus === "upgrading_legacy_anonymous"
+            ? {
+                accessMode: "upgrade",
+                title: "完成账号升级后继续",
+                description: "升级成正式账号后，你会直接回到当前频道继续参与。",
+                placeholder: "完成账号升级后即可发内容",
+                primaryLabel: "继续升级",
+                primaryAction: "open-auth-upgrade"
+            }
+            : {
+                accessMode: "syncing",
+                title: "正在进入频道",
+                description: "成员身份正在同步，通常刷新后就会恢复可编辑状态。",
+                placeholder: "正在同步频道身份，暂时无法发内容",
+                primaryLabel: "",
+                primaryAction: ""
+            };
+    const readOnlyGate = {
+        accessMode: "readonly",
+        title: state.roundState.archiveViewerRoundId ? "当前是历史归档" : "当前回合已经归档",
+        description: state.roundState.archiveViewerRoundId
+            ? "你正在查看历史回放，这里只读不写。"
+            : "本轮已经归档完成，如需继续运行请先恢复某个存档。",
+        placeholder: state.roundState.archiveViewerRoundId ? "历史归档只读查看" : "当前回合已归档，暂不接受新内容",
+        primaryLabel: "",
+        primaryAction: ""
+    };
     const availableMentionMembers = stage.value === "guess"
-        ? mentionMembers.filter((member) => member.name !== state.runtimeState.realIdentity.name)
-        : mentionMembers;
-    const revealEntry = state.roundState.revealMap?.[state.runtimeState.realIdentity.name] || null;
-    const revealResult = revealEntry?.angel
-        ? {
-            guessedName: guessSelection?.name || "",
-            guessedAvatar: guessSelection?.avatar || "",
-            actualName: revealEntry.angel.name,
-            actualAvatar: revealEntry.angel.avatar || "",
-            isCorrect: Boolean(guessSelection?.name) && guessSelection.name === revealEntry.angel.name
-        }
-        : null;
+        ? buildChannelMemberOptions(state, { excludeCurrent: true })
+        : buildChannelMemberOptions(state);
+    const revealPairs = buildRevealPairs(state.roundState.revealMap);
+    const revealResult = buildRevealResult({
+        revealMap: state.roundState.revealMap,
+        memberName: state.runtimeState.realIdentity.name,
+        guessSelection
+    });
+    const anonymousPreviewSourceMatches = state.composerState.anonymousPreviewSourceText === draftText.trim();
+    const anonymousPreviewDisplayText = anonymousPreviewSourceMatches && state.composerState.anonymousPreviewText
+        ? state.composerState.anonymousPreviewText
+        : anonymizeComposerText(draftText.trim());
 
     return {
         capabilities: composerCapabilityRegistry,
         canCompose,
         stageAllowsPosting: stage.canCompose,
-        hideInlineComposer: stage.value === "guess",
+        hideInlineComposer: isGuessBoard,
         stageInfo: stage,
         expanded,
-        gate: canCompose ? null : gateByState,
+        gate: canCompose ? null : (isReadOnlyRound ? readOnlyGate : gateByState),
         draftText,
         images,
         audioDraft,
         audioRecording,
         mentionTarget: effectiveMentionTarget,
-        mentionOpen: stage.requiresMention ? state.composerState.mentionOpen : false,
+        mentionOpen: stage.requiresMention && canChooseMentionTarget ? state.composerState.mentionOpen : false,
         mentionMembers: availableMentionMembers,
+        canChooseMentionTarget,
         mentionTitle: stage.value === "guess" ? "你猜的是谁" : "实现谁的愿望",
         charCount: draftText.length,
         aiDisclosure: state.composerState.aiDisclosure,
@@ -120,7 +148,10 @@ export const selectComposerPanelVM = (state) => {
         selectedBoard: stage.value,
         anonymousMode,
         anonymousLocked: stage.forceAnonymous,
-        autoRotate: state.composerState.autoRotate,
+        anonymousTextRewrite: state.composerState.anonymousTextRewrite,
+        anonymousPreviewStatus: state.composerState.anonymousPreviewStatus,
+        anonymousPreviewDisplayText,
+        showAnonymousTextPreview: anonymousMode && state.composerState.anonymousTextRewrite && Boolean(draftText.trim()),
         aiImageReshape: state.composerState.aiImageReshape,
         aiDisclosureOpen: stage.forceAnonymous ? false : state.composerState.aiDisclosureOpen,
         submitStatus: state.composerState.submitStatus,
@@ -161,6 +192,8 @@ export const selectComposerPanelVM = (state) => {
         claimSelection,
         guessSelection,
         revealResult,
+        revealPairs,
+        isFreeChatBoard,
         isClaimStage: stage.value === "claim",
         isDeliveryStage: stage.value === "delivery",
         isGuessStage: stage.value === "guess",

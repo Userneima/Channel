@@ -1,0 +1,20 @@
+<view class="page stack">
+  <view wx:if="{{stage}}" class="panel task-form">
+    <view class="eyebrow">{{stage.label}}</view>
+    <view class="title">{{stage.taskLabel}}</view>
+    <view class="muted">{{stage.helperText}}</view>
+
+    <picker wx:if="{{stage.value === 'claim'}}" mode="selector" range="{{wishes}}" range-key="preview" bindchange="onTargetChange">
+      <view class="picker">选择要认领的愿望</view>
+    </picker>
+
+    <picker wx:if="{{stage.value === 'guess'}}" mode="selector" range="{{members}}" range-key="displayName" bindchange="onTargetChange">
+      <view class="picker">选择你猜测的天使</view>
+    </picker>
+
+    <textarea wx:if="{{stage.canCompose}}" placeholder="{{stage.placeholder}}" value="{{body}}" bindinput="onBodyInput" />
+    <button class="button" loading="{{loading}}" bindtap="submit">{{stage.submitLabel}}</button>
+  </view>
+
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+</view>

@@ -19,10 +19,10 @@ export const selectAuthGateVM = (state) => {
             ? "注册后继续"
             : "登录后继续",
         description: isRegister
-            ? "用昵称、邮箱和密码创建账号后，你就可以继续浏览并申请加入频道。"
+            ? "用昵称、邮箱和密码创建账号后，你就会自动加入当前频道。"
             : isUpgrade
                 ? "先继续完成当前账号升级流程。"
-                : "用邮箱和密码登录后，你就可以继续浏览并申请加入频道。",
+                : "用邮箱和密码登录后，你就会自动加入当前频道。",
         submitLabel: state.authState.status === "verifying"
             ? (isRegister ? "注册中" : "登录中")
             : (isRegister ? "注册" : "登录"),

@@ -24,7 +24,10 @@ const createMockDataService = () => ({
     publishPost: vi.fn(),
     publishComment: vi.fn(),
     updateIdentity: vi.fn(),
-    updateChannel: vi.fn()
+    updateChannel: vi.fn(),
+    updateChannelRoundState: vi.fn(),
+    listRoundMemberStatuses: vi.fn(),
+    resetChannelRoundProgress: vi.fn()
 });
 
 describe("sidebar nav account menu", () => {
@@ -132,7 +135,7 @@ describe("sidebar nav account menu", () => {
 
         expect(root.textContent).toContain("准备正式参与？");
         expect(root.textContent).toContain("进入真实频道");
-        expect(root.textContent).toContain("真实频道会进入正式登录和加入流程。");
+        expect(root.textContent).toContain("真实频道会使用正式账号和真实数据。");
         expect(root.textContent).not.toContain("试玩只是为了让你快速理解机制");
         expect(root.querySelector(".sidebar-nav__promo")).toBeTruthy();
     });

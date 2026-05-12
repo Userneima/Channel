@@ -1,0 +1,12 @@
+<view class="page stack">
+  <view wx:if="{{game}}" class="panel admin">
+    <view class="eyebrow">ADMIN</view>
+    <view class="title">控场面板</view>
+    <stage-progress currentStage="{{game.game.currentStage}}" />
+    <input placeholder="本轮主题" value="{{theme}}" bindinput="onThemeInput" />
+    <button class="button" loading="{{loading}}" bindtap="advanceStage">推进到下一阶段</button>
+    <button class="button ghost" loading="{{loading}}" bindtap="generateReveal">生成揭晓</button>
+    <button class="button ghost" loading="{{loading}}" bindtap="confirmReveal">确认揭晓</button>
+  </view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+</view>

@@ -1,0 +1,16 @@
+<view class="page stack">
+  <view class="panel header">
+    <view class="eyebrow">REVEAL</view>
+    <view class="title">国王与天使</view>
+    <view class="muted">{{stage === 'reveal' ? '本轮结果已经揭晓。' : '管理员确认揭晓后，这里会显示最终配对。'}}</view>
+  </view>
+
+  <view wx:for="{{pairs}}" wx:key="member.name" class="pair panel">
+    <view class="king">{{item.member.name}}</view>
+    <view class="muted">的天使是</view>
+    <view class="angel">{{item.angel.name}}</view>
+  </view>
+
+  <view wx:if="{{!pairs.length}}" class="panel empty">还没有揭晓结果。</view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+</view>

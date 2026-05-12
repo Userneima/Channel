@@ -51,7 +51,7 @@ export const composerPanelTemplate = (vm) => `
                     <button class="composer-panel__icon-button" disabled type="button">
                         <span class="material-icons-outlined">sentiment_satisfied_alt</span>
                     </button>
-                    <button class="composer-panel__icon-button composer-panel__icon-button--toggle ${vm.anonymousMode ? "is-active" : ""}" disabled type="button" title="匿名发言需要先通过频道审核">
+                    <button class="composer-panel__icon-button composer-panel__icon-button--toggle ${vm.anonymousMode ? "is-active" : ""}" disabled type="button" title="进入频道后即可使用匿名发言">
                         <span class="material-icons-outlined">alternate_email</span>
                     </button>
                     <button class="composer-panel__icon-button" disabled type="button">
@@ -62,7 +62,7 @@ export const composerPanelTemplate = (vm) => `
                     </button>
                 </div>
             </div>
-            <div class="composer-panel__disabled-tip">匿名发帖功能仍在，但只有通过频道审核的成员才能使用。</div>
+            <div class="composer-panel__disabled-tip">${escapeHtml(vm.gate?.description || "登录后即可参与频道。")}</div>
             ${vm.gate?.primaryAction && vm.gate?.primaryLabel ? `
                 <div class="composer-panel__disabled-actions">
                     <button class="composer-panel__disabled-primary" data-composer-action="${escapeHtml(vm.gate.primaryAction)}" type="button">${escapeHtml(vm.gate.primaryLabel)}</button>
@@ -89,7 +89,7 @@ export const composerPanelTemplate = (vm) => `
                         <div class="composer-panel__claim-empty">从下方愿望列表里选 1 条，交付阶段会自动带上目标。</div>
                     ` : vm.isRevealStage && vm.revealResult ? `
                         <div class="composer-panel__claim-card composer-panel__claim-card--reveal">
-                            <div class="composer-panel__claim-label">揭晓结果</div>
+                            <div class="composer-panel__claim-label">我的揭晓结果</div>
                             <div class="composer-panel__claim-preview">你猜的是 ${escapeHtml(vm.revealResult.guessedName || "未提交猜测")}，实际天使是 ${escapeHtml(vm.revealResult.actualName)}。</div>
                             <div class="composer-panel__claim-label">${vm.revealResult.isCorrect ? "这次猜中了。" : "这次没猜中。"}</div>
                         </div>
@@ -109,8 +109,15 @@ export const composerPanelTemplate = (vm) => `
                     <button class="composer-panel__collapsed-field" data-composer-action="expand" type="button">
                         <span class="composer-panel__collapsed-placeholder ${vm.hasDraft ? "has-draft" : ""}">${escapeHtml(vm.collapsedSummary)}</span>
                     </button>
+                    ${vm.isDeliveryStage && vm.mentionTarget ? `
+                        <div class="composer-panel__mention-chip composer-panel__mention-chip--collapsed">
+                            <span class="composer-panel__mention-chip-label">To</span>
+                            <img alt="${escapeHtml(vm.mentionTarget.name)}" class="composer-panel__mention-avatar" src="${vm.mentionTarget.avatar}" />
+                            <span>${escapeHtml(vm.mentionTarget.name)}</span>
+                        </div>
+                    ` : ""}
                     <div class="composer-panel__tools composer-panel__tools--collapsed">
-                        ${vm.stageInfo.requiresMention ? buildMentionMenu(vm) : ""}
+                        ${vm.stageInfo.requiresMention && vm.canChooseMentionTarget ? buildMentionMenu(vm) : ""}
                         ${vm.anonymousLocked ? `
                             <div class="composer-panel__stage-badge">匿名阶段</div>
                         ` : `
@@ -135,7 +142,7 @@ export const composerPanelTemplate = (vm) => `
                     <button class="composer-panel__icon-button" type="button" title="表情">
                         <span class="material-icons-outlined">sentiment_satisfied_alt</span>
                     </button>
-                    ${vm.stageInfo.requiresMention ? buildMentionMenu(vm) : ""}
+                    ${vm.stageInfo.requiresMention && vm.canChooseMentionTarget ? buildMentionMenu(vm) : ""}
                     ${vm.anonymousLocked ? `
                         <div class="composer-panel__stage-badge">匿名阶段</div>
                     ` : `
@@ -178,13 +185,13 @@ export const composerPanelTemplate = (vm) => `
                 <div class="composer-panel__anonymous-panel">
                     <div class="composer-panel__anonymous-card">
                         <img alt="${escapeHtml(vm.activeAlias?.name || "匿名用户")}" class="composer-panel__anonymous-avatar" src="${vm.activeAlias?.avatar || ""}" />
-                        <div class="composer-panel__anonymous-copy">
+                            <div class="composer-panel__anonymous-copy">
                             <div class="composer-panel__anonymous-head">
                                 <strong>${escapeHtml(vm.activeAlias?.name || "匿名用户")}</strong>
                                 <button class="composer-panel__anonymous-action composer-panel__anonymous-action--inline" data-composer-action="regenerate-alias" type="button">换马甲</button>
                                 <label class="composer-panel__anonymous-checkbox">
-                                    <input ${vm.autoRotate ? "checked" : ""} data-ref="auto-rotate" type="checkbox" />
-                                    <span>发完自动换马甲</span>
+                                    <input ${vm.anonymousTextRewrite ? "checked" : ""} data-ref="anonymous-text-rewrite" type="checkbox" />
+                                    <span>AI 润色文本</span>
                                 </label>
                                 <label class="composer-panel__anonymous-checkbox">
                                     <input ${vm.aiImageReshape ? "checked" : ""} data-ref="ai-image-reshape" type="checkbox" />
@@ -196,10 +203,15 @@ export const composerPanelTemplate = (vm) => `
                                     </button>
                                     <div class="composer-panel__anonymous-help-popover">
                                         <p>普通成员只会看到这层马甲，管理员可切换到真实身份视角。</p>
-                                        <p>文本默认会先经过 AI 改写去除个人表达痕迹；勾选后，图片也会额外走 AI 重塑。</p>
+                                        <p>匿名发出后会自动刷新成下一张马甲。</p>
+                                        <p>如果打开 AI 润色，会先给你一版可预览的文本，再决定是否发出。</p>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="composer-panel__anonymous-preview ${vm.showAnonymousTextPreview ? "" : "is-hidden"} ${vm.anonymousPreviewStatus === "loading" ? "is-loading" : ""}" data-ref="anonymous-preview">
+                            <div class="composer-panel__anonymous-preview-label">${vm.anonymousPreviewStatus === "loading" ? "AI 润色中" : "AI 润色预览"}</div>
+                            <div class="composer-panel__anonymous-preview-body" data-ref="anonymous-preview-body">${escapeHtml(vm.anonymousPreviewDisplayText)}</div>
                         </div>
                     </div>
                 </div>
@@ -220,9 +232,11 @@ export const composerPanelTemplate = (vm) => `
                         <span class="composer-panel__mention-chip-label">To</span>
                         <img alt="${escapeHtml(vm.mentionTarget.name)}" class="composer-panel__mention-avatar" src="${vm.mentionTarget.avatar}" />
                         <span>${escapeHtml(vm.mentionTarget.name)}</span>
-                        <button class="composer-panel__mention-clear" data-composer-action="clear-mention" type="button" aria-label="清除目标成员">
-                            <span class="material-icons-outlined">close</span>
-                        </button>
+                        ${vm.canChooseMentionTarget ? `
+                            <button class="composer-panel__mention-clear" data-composer-action="clear-mention" type="button" aria-label="清除目标成员">
+                                <span class="material-icons-outlined">close</span>
+                            </button>
+                        ` : ""}
                     </div>
                 ` : ""}
                 <label class="composer-panel__field composer-panel__field--expanded">
@@ -236,12 +250,14 @@ export const composerPanelTemplate = (vm) => `
                     </div>
                 ` : ""}
                 <div class="composer-panel__media-row">
-                    <label class="composer-panel__add-tile">
-                        <span class="material-icons-outlined">add</span>
-                        <input accept="image/*" class="sr-only" data-ref="image-input-secondary" multiple type="file" />
-                    </label>
                     ${buildAudioDraft(vm)}
-                    <div class="composer-panel__image-list" data-ref="image-list"></div>
+                    <div class="composer-panel__media-grid">
+                        <label class="composer-panel__add-tile">
+                            <span class="material-icons-outlined">add</span>
+                            <input accept="image/*" class="sr-only" data-ref="image-input-secondary" multiple type="file" />
+                        </label>
+                        <div class="composer-panel__image-list" data-ref="image-list"></div>
+                    </div>
                     <div class="composer-panel__footer composer-panel__footer--expanded">
                         <div class="composer-panel__footer-right">
                             <div class="composer-panel__count" data-ref="char-count">${vm.charCount}/1000</div>

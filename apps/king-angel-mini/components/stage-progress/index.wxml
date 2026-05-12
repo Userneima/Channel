@@ -1,0 +1,7 @@
+<view class="stage-progress">
+  <block wx:for="{{stages}}" wx:key="value">
+    <view class="stage {{item.value === currentStage ? 'active' : ''}}">
+      <text>{{item.label}}</text>
+    </view>
+  </block>
+</view>

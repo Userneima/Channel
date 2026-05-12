@@ -158,9 +158,11 @@ export const mountComposerPanelBlock = ({ root, store, actions }) => {
             identityName: root.querySelector("[data-ref='identity-name']"),
             identityMeta: root.querySelector("[data-ref='identity-meta']"),
             anonymousIcon: root.querySelector("[data-ref='anonymous-icon']"),
+            anonymousTextRewrite: root.querySelector("[data-ref='anonymous-text-rewrite']"),
+            anonymousPreview: root.querySelector("[data-ref='anonymous-preview']"),
+            anonymousPreviewBody: root.querySelector("[data-ref='anonymous-preview-body']"),
             aiDisclosureSelect: root.querySelector("[data-ref='ai-disclosure-select']"),
             boardSelect: root.querySelector("[data-ref='board-select']"),
-            autoRotate: root.querySelector("[data-ref='auto-rotate']"),
             aiImageReshape: root.querySelector("[data-ref='ai-image-reshape']"),
             charCount: root.querySelector("[data-ref='char-count']"),
             submitButton: root.querySelector("[data-ref='submit-button']")
@@ -251,8 +253,19 @@ export const mountComposerPanelBlock = ({ root, store, actions }) => {
             if (refs.boardSelect) {
                 refs.boardSelect.value = vm.selectedBoard;
             }
-            if (refs.autoRotate) {
-                refs.autoRotate.checked = vm.autoRotate;
+            if (refs.anonymousTextRewrite) {
+                refs.anonymousTextRewrite.checked = vm.anonymousTextRewrite;
+            }
+            if (refs.anonymousPreview) {
+                refs.anonymousPreview.classList.toggle("is-hidden", !vm.showAnonymousTextPreview);
+                refs.anonymousPreview.classList.toggle("is-loading", vm.anonymousPreviewStatus === "loading");
+            }
+            if (refs.anonymousPreviewBody) {
+                refs.anonymousPreviewBody.textContent = vm.anonymousPreviewDisplayText;
+            }
+            const anonymousPreviewLabel = root.querySelector(".composer-panel__anonymous-preview-label");
+            if (anonymousPreviewLabel) {
+                anonymousPreviewLabel.textContent = vm.anonymousPreviewStatus === "loading" ? "AI 润色中" : "AI 润色预览";
             }
             if (refs.aiImageReshape) {
                 refs.aiImageReshape.checked = vm.aiImageReshape;

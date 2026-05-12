@@ -1,0 +1,17 @@
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 22rpx;
+    padding: 36rpx 32rpx;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16rpx;
+}
+
+.error {
+    color: #9b3d2e;
+    font-size: 26rpx;
+}

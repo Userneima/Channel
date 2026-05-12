@@ -1,0 +1,6 @@
+{
+  "name": "@soulmap/king-angel-core",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.cjs"
+}

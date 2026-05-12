@@ -10,9 +10,20 @@ const getGuestMembershipState = () => ({
     joinRequest: null,
     reviewItems: [],
     reviewStatus: "idle",
+    directoryItems: [],
+    directoryStatus: "idle",
+    directoryError: null,
+    mutationStatus: "idle",
+    activeMemberId: null,
     submitStatus: "idle",
     error: null
 });
+
+const getPreferredBoard = (channel, fallbackBoard = "all") => (
+    channel?.currentRoundStage
+    || channel?.current_round_stage
+    || fallbackBoard
+);
 
 const applyBootstrapSnapshot = ({ store, bootstrap, source = "network", phase = "ready" }) => {
     const auth = bootstrap.auth || { user: null, isAnonymous: false };
@@ -55,12 +66,18 @@ const applyBootstrapSnapshot = ({ store, bootstrap, source = "network", phase = 
     });
 
     const membership = bootstrap.membership || getGuestMembershipState();
+    const currentMembershipState = store.getState().membershipState;
     store.dispatch({
         type: "membership/set-state",
         payload: {
             status: membership.status,
             joinRequest: membership.joinRequest,
             reviewItems: membership.reviewItems || [],
+            directoryItems: currentMembershipState.directoryItems || [],
+            directoryStatus: currentMembershipState.directoryStatus || "idle",
+            directoryError: currentMembershipState.directoryError || null,
+            mutationStatus: currentMembershipState.mutationStatus || "idle",
+            activeMemberId: currentMembershipState.activeMemberId || null,
             reviewStatus: "idle",
             submitStatus: "idle",
             error: null
@@ -104,17 +121,24 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
                 status: "guest",
                 joinRequest: null,
                 reviewItems: [],
-                role: null
+                role: null,
+                directoryItems: []
             };
         }
 
         const membership = await dataService.loadMembershipState(channelId);
+        const currentMembershipState = store.getState().membershipState;
         store.dispatch({
             type: "membership/set-state",
             payload: {
                 status: membership.status,
                 joinRequest: membership.joinRequest,
                 reviewItems: membership.reviewItems || [],
+                directoryItems: currentMembershipState.directoryItems || [],
+                directoryStatus: currentMembershipState.directoryStatus || "idle",
+                directoryError: currentMembershipState.directoryError || null,
+                mutationStatus: currentMembershipState.mutationStatus || "idle",
+                activeMemberId: currentMembershipState.activeMemberId || null,
                 reviewStatus: "idle",
                 submitStatus: "idle",
                 error: null
@@ -164,6 +188,7 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
         try {
             const cachedBootstrap = await dataService.getCachedChannelBootstrap(slug);
             let feedPromise = null;
+            const fallbackBoard = store.getState().feedState.activeBoard;
 
             if (cachedBootstrap) {
                 applyBootstrapSnapshot({
@@ -173,10 +198,10 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
                     phase: "hydrating"
                 });
                 if (cachedBootstrap.channel?.id) {
-                    feedPromise = feedActions.loadFeed(store.getState().feedState.activeBoard);
+                    feedPromise = feedActions.loadFeed(getPreferredBoard(cachedBootstrap.channel, fallbackBoard));
                 }
             } else if (shellChannel?.id) {
-                feedPromise = feedActions.loadFeed(store.getState().feedState.activeBoard);
+                feedPromise = feedActions.loadFeed(getPreferredBoard(shellChannel, fallbackBoard));
             }
 
             const bootstrap = await dataService.loadChannelBootstrap(slug);
@@ -190,7 +215,7 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
             if (feedPromise) {
                 await feedPromise;
             } else if (bootstrap.channel?.id) {
-                await feedActions.loadFeed(store.getState().feedState.activeBoard);
+                await feedActions.loadFeed(getPreferredBoard(bootstrap.channel, fallbackBoard));
             }
 
             store.dispatch({ type: "auth-gate/close" });

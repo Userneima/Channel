@@ -41,7 +41,7 @@ export const selectSidebarNavVM = (state) => {
             ? {
                 eyebrow: "准备正式参与？",
                 title: "登录进入真实频道参与本周回合",
-                description: "真实频道会进入正式登录和加入流程。",
+                description: "真实频道会使用正式账号和真实数据。",
                 primaryLabel: "进入真实频道",
                 primaryHref: runtimeConfig.channelSlug ? `?channel=${encodeURIComponent(runtimeConfig.channelSlug)}` : "?",
                 note: ""

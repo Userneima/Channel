@@ -1,0 +1,40 @@
+.hero {
+    padding: 40rpx 34rpx;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    padding: 28rpx;
+}
+
+input {
+    height: 88rpx;
+    box-sizing: border-box;
+    padding: 0 28rpx;
+    border-radius: 999rpx;
+    background: rgba(45, 36, 27, 0.06);
+    color: #2d241b;
+    font-size: 28rpx;
+}
+
+.section-title {
+    margin-top: 12rpx;
+    font-size: 30rpx;
+    font-weight: 650;
+}
+
+.game-card {
+    padding: 28rpx;
+}
+
+.game-name {
+    font-size: 32rpx;
+    font-weight: 650;
+}
+
+.error {
+    color: #9b3d2e;
+    font-size: 26rpx;
+}

@@ -1,4 +1,4 @@
-import { channelShellConfig } from "../entities/channel/config.js";
+import { channelShellConfig, defaultRoundDeadlines } from "../entities/channel/config.js";
 import { defaultAnonymousProfiles, mentionMembers } from "../entities/identity/config.js";
 
 const nowIso = "2026-04-22T09:30:00.000Z";
@@ -49,6 +49,11 @@ export const demoChannel = {
     previewVisibility: "public",
     joinPolicy: "approval_required",
     currentRoundTheme: "玄学",
+    currentRoundStage: "wish",
+    currentRoundStatus: "active",
+    currentRoundDeadlines: { ...defaultRoundDeadlines },
+    currentRoundStartedAt: nowIso,
+    currentRoundCompletedAt: null,
     currentRoundGodProfile: {
         name: "上帝",
         avatar: defaultAnonymousProfiles[2]?.avatar || channelShellConfig.channelLogo
@@ -236,6 +241,7 @@ export const demoPosts = [
 
 export const cloneDemoPost = (post) => ({
     ...post,
+    roundArchive: post.roundArchive ? JSON.parse(JSON.stringify(post.roundArchive)) : null,
     images: (post.images || []).map((image) => ({ ...image })),
     audioClips: (post.audioClips || []).map((clip) => ({ ...clip })),
     comments: (post.comments || []).map((comment) => ({ ...comment }))

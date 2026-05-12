@@ -2,10 +2,6 @@ import { escapeHtml, formatComposerTextForPost } from "../../shared/lib/helpers.
 
 const buildGuessPicker = (vm) => `
     <section class="guess-picker">
-        <div class="guess-picker__header">
-            <h3 class="guess-picker__title">选择你猜的天使</h3>
-            <p class="guess-picker__subtitle">先锁定你最怀疑的人；不可能的人可以先排除，再在下方写你的推理依据。</p>
-        </div>
         <div class="guess-picker__grid">
             ${vm.candidates.map((candidate) => `
                 <article class="guess-picker__card ${candidate.isSelected ? "is-selected" : ""} ${candidate.isExcluded ? "is-excluded" : ""}">
@@ -13,10 +9,10 @@ const buildGuessPicker = (vm) => `
                     <span class="guess-picker__name">${escapeHtml(candidate.name)}</span>
                     <span class="guess-picker__meta">${candidate.isSelected ? "已锁定" : candidate.isExcluded ? "已排除" : "待判断"}</span>
                     <div class="guess-picker__actions">
-                        <button class="guess-picker__action ${candidate.isSelected ? "is-active" : ""}" data-feed-action="select-guess-target" data-guess-name="${encodeURIComponent(candidate.name)}" data-guess-avatar="${encodeURIComponent(candidate.avatar || "")}" ${candidate.isExcluded ? "disabled" : ""} type="button">
-                            ${candidate.isSelected ? "已选择" : "选这个人"}
+                        <button class="guess-picker__action ${candidate.isSelected ? "is-active" : ""}" data-feed-action="select-guess-target" data-guess-name="${encodeURIComponent(candidate.name)}" data-guess-avatar="${encodeURIComponent(candidate.avatar || "")}" ${candidate.isExcluded || candidate.isDisabled ? "disabled" : ""} type="button">
+                            ${candidate.isSelected ? "已选" : "选他"}
                         </button>
-                        <button class="guess-picker__action guess-picker__action--secondary ${candidate.isExcluded ? "is-active" : ""}" data-feed-action="toggle-guess-exclusion" data-guess-name="${encodeURIComponent(candidate.name)}" type="button">
+                        <button class="guess-picker__action guess-picker__action--secondary ${candidate.isExcluded ? "is-active" : ""}" data-feed-action="toggle-guess-exclusion" data-guess-name="${encodeURIComponent(candidate.name)}" ${candidate.isDisabled ? "disabled" : ""} type="button">
                             ${candidate.isExcluded ? "取消排除" : "排除"}
                         </button>
                     </div>
@@ -40,7 +36,7 @@ const buildGuessPicker = (vm) => `
             </div>
             <label class="guess-picker__field">
                 <span class="guess-picker__field-label">推理依据</span>
-                <textarea class="guess-picker__textarea" data-feed-input="guess-reason" placeholder="可以在这里输入你已经收集到的信息进行推理">${escapeHtml(vm.guessDraftText || "")}</textarea>
+                <textarea class="guess-picker__textarea" data-feed-input="guess-reason" ${vm.canEditGuessSelection ? "" : "disabled"} placeholder="可以在这里输入你已经收集到的信息进行推理">${escapeHtml(vm.guessDraftText || "")}</textarea>
             </label>
             <div class="guess-picker__footer">
                 <button class="guess-picker__submit" data-feed-action="submit-guess" ${vm.canSubmitGuess && vm.submitStatus !== "submitting" ? "" : "disabled"} type="button">
@@ -48,6 +44,140 @@ const buildGuessPicker = (vm) => `
                 </button>
             </div>
         </div>
+    </section>
+`;
+
+const buildArchivedClaimSummary = (vm) => `
+    <section class="reveal-results">
+        ${vm.items.length ? `
+            <div class="reveal-results__list">
+                ${vm.items.map((item) => `
+                    <article class="reveal-results__card">
+                        <div class="reveal-results__head">
+                            <div class="reveal-results__person-block">
+                                <span class="reveal-results__label">谁在选愿望</span>
+                                <div class="reveal-results__person">
+                                    ${item.memberAvatar ? `<img alt="${escapeHtml(item.memberName)}" class="reveal-results__avatar" src="${item.memberAvatar}" />` : ""}
+                                    <span>${escapeHtml(item.memberName)}</span>
+                                </div>
+                            </div>
+                            <div class="reveal-results__person-block">
+                                <span class="reveal-results__label">锁定对象</span>
+                                ${item.claimTargetName ? `
+                                    <div class="reveal-results__person">
+                                        ${item.claimTargetAvatar ? `<img alt="${escapeHtml(item.claimTargetName)}" class="reveal-results__avatar" src="${item.claimTargetAvatar}" />` : ""}
+                                        <span>${escapeHtml(item.claimTargetName)}</span>
+                                    </div>
+                                ` : `
+                                    <div class="reveal-results__copy">这位成员当时还没锁定愿望。</div>
+                                `}
+                            </div>
+                        </div>
+                        <div class="reveal-results__meta-block">
+                            <span class="reveal-results__label">愿望摘要</span>
+                            <div class="reveal-results__copy">${escapeHtml(item.wishPreview || "这条愿望的摘要没有保存在归档里。")}</div>
+                        </div>
+                    </article>
+                `).join("")}
+            </div>
+        ` : `
+            <div class="feed-list__state">
+                <div class="feed-list__state-icon"><span class="material-icons-outlined">assignment_turned_in</span></div>
+                <h3>这份归档里还没有选愿望记录</h3>
+                <p>当前选愿望阶段的快照暂时为空。</p>
+            </div>
+        `}
+    </section>
+`;
+
+const buildArchivedGuessSummary = (vm) => `
+    <section class="reveal-results">
+        ${vm.items.length ? `
+            <div class="reveal-results__list">
+                ${vm.items.map((item) => `
+                    <article class="reveal-results__card">
+                        <div class="reveal-results__head">
+                            <div class="reveal-results__person-block">
+                                <span class="reveal-results__label">谁在猜</span>
+                                <div class="reveal-results__person">
+                                    ${item.memberAvatar ? `<img alt="${escapeHtml(item.memberName)}" class="reveal-results__avatar" src="${item.memberAvatar}" />` : ""}
+                                    <span>${escapeHtml(item.memberName)}</span>
+                                </div>
+                            </div>
+                            <div class="reveal-results__person-block">
+                                <span class="reveal-results__label">猜的是谁</span>
+                                ${item.guessTargetName ? `
+                                    <div class="reveal-results__person">
+                                        ${item.guessTargetAvatar ? `<img alt="${escapeHtml(item.guessTargetName)}" class="reveal-results__avatar" src="${item.guessTargetAvatar}" />` : ""}
+                                        <span>${escapeHtml(item.guessTargetName)}</span>
+                                    </div>
+                                ` : `
+                                    <div class="reveal-results__copy">这位成员当时还没提交猜测。</div>
+                                `}
+                            </div>
+                        </div>
+                    </article>
+                `).join("")}
+            </div>
+        ` : `
+            <div class="feed-list__state">
+                <div class="feed-list__state-icon"><span class="material-icons-outlined">psychology</span></div>
+                <h3>这份归档里还没有猜测记录</h3>
+                <p>当前猜测阶段的快照暂时为空。</p>
+            </div>
+        `}
+    </section>
+`;
+
+const buildRevealResults = (vm) => `
+    <section class="reveal-results">
+        ${vm.revealPairs.length ? `
+            <div class="reveal-results__list">
+                ${vm.revealPairs.map((pair) => `
+                    <article class="reveal-results__card">
+                        <div class="reveal-results__head">
+                            <div class="reveal-results__person-block">
+                                <span class="reveal-results__label">国王</span>
+                                <div class="reveal-results__person">
+                                    ${pair.member.avatar ? `<img alt="${escapeHtml(pair.member.name)}" class="reveal-results__avatar" src="${pair.member.avatar}" />` : ""}
+                                    <span>${escapeHtml(pair.member.name)}</span>
+                                </div>
+                            </div>
+                            <div class="reveal-results__person-block">
+                                <span class="reveal-results__label">实际天使</span>
+                                <div class="reveal-results__person">
+                                    ${pair.angel.avatar ? `<img alt="${escapeHtml(pair.angel.name)}" class="reveal-results__avatar" src="${pair.angel.avatar}" />` : ""}
+                                    <span>${escapeHtml(pair.angel.name)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reveal-results__meta-grid">
+                            <div class="reveal-results__meta-block">
+                                <span class="reveal-results__label">这位国王的愿望</span>
+                                <div class="reveal-results__copy">${escapeHtml(pair.wishPreview || "该国王本轮愿望暂未同步。")}</div>
+                            </div>
+                            <div class="reveal-results__meta-block">
+                                <span class="reveal-results__label">这位国王猜的天使</span>
+                                ${pair.guessedAngelName ? `
+                                    <div class="reveal-results__person">
+                                        ${pair.guessedAngelAvatar ? `<img alt="${escapeHtml(pair.guessedAngelName)}" class="reveal-results__avatar" src="${pair.guessedAngelAvatar}" />` : ""}
+                                        <span>${escapeHtml(pair.guessedAngelName)}</span>
+                                    </div>
+                                ` : `
+                                    <div class="reveal-results__copy">这位国王还没提交猜测。</div>
+                                `}
+                            </div>
+                        </div>
+                    </article>
+                `).join("")}
+            </div>
+        ` : `
+            <div class="feed-list__state">
+                <div class="feed-list__state-icon"><span class="material-icons-outlined">visibility</span></div>
+                <h3>揭晓结果还没生成</h3>
+                <p>管理员完成揭晓配对后，这里会直接展示每位国王的愿望、猜测和实际天使。</p>
+            </div>
+        `}
     </section>
 `;
 
@@ -67,17 +197,17 @@ const buildPostCard = (post) => `
                 <div class="feed-card__meta">
                     <div class="feed-card__author-row">
                         <span class="feed-card__author">${escapeHtml(post.authorName)}</span>
-                    ${post.role === "admin" && !post.isAnonymous ? '<span class="feed-card__admin-tag">管理员</span>' : ""}
-                    ${post.role === "owner" && !post.isAnonymous ? '<span class="feed-card__badge">频道主</span>' : ""}
+                        ${post.showAdminTag ? '<span class="feed-card__admin-tag">管理员</span>' : ""}
+                        ${post.showOwnerBadge ? '<span class="feed-card__badge">频道主</span>' : ""}
+                        ${post.showAdminReveal ? `
+                            <div class="feed-card__admin-reveal">
+                                <span class="feed-card__admin-reveal-label">真实身份</span>
+                                <img alt="${escapeHtml(post.adminRevealIdentity.name)}" class="feed-card__admin-reveal-avatar" src="${post.adminRevealIdentity.avatar}" />
+                                <span class="feed-card__admin-reveal-name">${escapeHtml(post.adminRevealIdentity.name)}</span>
+                            </div>
+                        ` : ""}
                     </div>
                     <div class="feed-card__time">${escapeHtml(post.timeLabel)}</div>
-                    ${post.showAdminReveal ? `
-                        <div class="feed-card__admin-reveal">
-                            <span class="feed-card__admin-reveal-label">真实身份</span>
-                            <img alt="${escapeHtml(post.adminRevealIdentity.name)}" class="feed-card__admin-reveal-avatar" src="${post.adminRevealIdentity.avatar}" />
-                            <span class="feed-card__admin-reveal-name">${escapeHtml(post.adminRevealIdentity.name)}</span>
-                        </div>
-                    ` : ""}
                 </div>
                 <div class="feed-card__header-actions">
                     ${post.canDelete ? '<button class="feed-card__header-action" data-feed-action="request-delete-post" type="button">删除</button>' : ""}
@@ -133,9 +263,23 @@ const buildPostCard = (post) => `
     </article>
 `;
 
+const buildStageHeader = (header) => `
+    <header class="feed-list__stage-header">
+        <div class="feed-list__stage-eyebrow">${escapeHtml(header.eyebrow)}</div>
+        <h3 class="feed-list__stage-title">${escapeHtml(header.title)}</h3>
+        <p class="feed-list__stage-description">${escapeHtml(header.description)}</p>
+    </header>
+`;
+
 export const feedListTemplate = (vm) => {
     const content = vm.mode === "guess-picker"
         ? buildGuessPicker(vm)
+        : vm.mode === "archived-claim-summary"
+            ? buildArchivedClaimSummary(vm)
+        : vm.mode === "archived-guess-summary"
+            ? buildArchivedGuessSummary(vm)
+        : vm.mode === "reveal-results"
+            ? buildRevealResults(vm)
         : vm.status === "loading"
             ? buildStateCard("hourglass_top", "正在加载内容", "正在拉取频道内容，请稍候。")
             : vm.status === "error"
@@ -150,7 +294,8 @@ export const feedListTemplate = (vm) => {
         </div>
     `;
     return `
-        <div class="feed-list ${vm.mode === "guess-picker" ? "feed-list--guess" : ""} ${vm.status === "empty" || vm.status === "search-empty" || vm.status === "loading" || vm.status === "error" ? "feed-list--state" : ""}">
+        <div class="feed-list ${vm.mode === "guess-picker" ? "feed-list--guess" : ""} ${vm.mode === "reveal-results" ? "feed-list--reveal" : ""} ${vm.status === "empty" || vm.status === "search-empty" || vm.status === "loading" || vm.status === "error" ? "feed-list--state" : ""}">
+            ${buildStageHeader(vm.stageHeader)}
             ${content}
         </div>
     `;

@@ -1,7 +1,14 @@
-export const attachBoardTabsEvents = ({ root, actions }) => {
+export const attachBoardTabsEvents = ({ root, actions, toggleFilterMenu, closeFilterMenu }) => {
     root.addEventListener("click", (event) => {
+        const toggleButton = event.target.closest("[data-board-tabs-action='toggle-filters']");
+        if (toggleButton) {
+            toggleFilterMenu();
+            return;
+        }
+
         const filterButton = event.target.closest("[data-filter]");
         if (filterButton) {
+            closeFilterMenu();
             actions.setFeedFilter(filterButton.dataset.filter);
             return;
         }

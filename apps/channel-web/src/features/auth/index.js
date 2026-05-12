@@ -86,6 +86,11 @@ export const createAuthActions = ({ store, dataService, showToast, runtimeAction
                     status: "guest",
                     joinRequest: null,
                     reviewItems: [],
+                    directoryItems: [],
+                    directoryStatus: "idle",
+                    directoryError: null,
+                    mutationStatus: "idle",
+                    activeMemberId: null,
                     reviewStatus: "idle",
                     submitStatus: "idle",
                     error: null
@@ -160,6 +165,11 @@ export const createAuthActions = ({ store, dataService, showToast, runtimeAction
                     status: "guest",
                     joinRequest: null,
                     reviewItems: [],
+                    directoryItems: [],
+                    directoryStatus: "idle",
+                    directoryError: null,
+                    mutationStatus: "idle",
+                    activeMemberId: null,
                     reviewStatus: "idle",
                     submitStatus: "idle",
                     error: null

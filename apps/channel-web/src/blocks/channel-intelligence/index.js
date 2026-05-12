@@ -28,42 +28,54 @@ export const mountChannelIntelligenceBlock = ({ root, store, actions }) => {
         }
     };
 
-    const getDigestSignature = (vm) => JSON.stringify({
-        topThemes: vm.topThemes,
-        representativePosts: vm.representativePosts,
-        openQuestions: vm.openQuestions
-    });
+    const getArchiveSignature = (archives = []) => JSON.stringify(
+        archives.map((archive) => ({
+            id: archive.id,
+            title: archive.displayTitle || archive.title || archive.theme || "",
+            completedAt: archive.completedAt || archive.createdAt || "",
+            pairCount: archive.stats?.pairCount || archive.revealPairs?.length || 0,
+            selected: Boolean(archive.isSelected)
+        }))
+    );
 
     const shouldRerender = (vm) => {
         if (!previousVM || root.innerHTML === "") {
             return true;
         }
 
-        return previousVM.open !== vm.open
-            || previousVM.godPickerOpen !== vm.godPickerOpen
+        return previousVM.godPickerOpen !== vm.godPickerOpen
             || previousVM.themeEditorOpen !== vm.themeEditorOpen
             || previousVM.revealEditorOpen !== vm.revealEditorOpen
             || previousVM.revealMemberPickerOpen !== vm.revealMemberPickerOpen
             || previousVM.revealAngelPickerOpen !== vm.revealAngelPickerOpen
-            || previousVM.status !== vm.status
-            || previousVM.metricsLine !== vm.metricsLine
-            || previousVM.compactHint !== vm.compactHint
             || previousVM.currentTheme !== vm.currentTheme
             || previousVM.hasTheme !== vm.hasTheme
             || previousVM.canManageRound !== vm.canManageRound
             || previousVM.canEditTheme !== vm.canEditTheme
             || previousVM.currentStageLabel !== vm.currentStageLabel
+            || previousVM.currentTaskStageLabel !== vm.currentTaskStageLabel
             || previousVM.currentTaskLabel !== vm.currentTaskLabel
             || previousVM.currentDeadlineLabel !== vm.currentDeadlineLabel
             || previousVM.currentTaskStatus !== vm.currentTaskStatus
             || previousVM.currentTaskHint !== vm.currentTaskHint
+            || previousVM.canArchiveRound !== vm.canArchiveRound
+            || previousVM.canForceArchiveRound !== vm.canForceArchiveRound
             || previousVM.godProfile?.name !== vm.godProfile?.name
             || previousVM.godProfile?.avatar !== vm.godProfile?.avatar
+            || previousVM.selectedArchive?.id !== vm.selectedArchive?.id
+            || previousVM.selectedArchive?.title !== vm.selectedArchive?.title
+            || previousVM.selectedArchive?.isRestorable !== vm.selectedArchive?.isRestorable
+            || previousVM.archiveDetailOpen !== vm.archiveDetailOpen
+            || previousVM.archiveDialogArchive?.id !== vm.archiveDialogArchive?.id
+            || previousVM.archiveDialogArchive?.posts?.length !== vm.archiveDialogArchive?.posts?.length
+            || previousVM.archiveViewerActive !== vm.archiveViewerActive
             || previousVM.draftRevealMember?.name !== vm.draftRevealMember?.name
             || previousVM.draftRevealAngel?.name !== vm.draftRevealAngel?.name
             || previousVM.revealResult?.actualName !== vm.revealResult?.actualName
             || previousVM.revealResult?.guessedName !== vm.revealResult?.guessedName
-            || getDigestSignature(previousVM) !== getDigestSignature(vm);
+            || previousVM.showRevealSummary !== vm.showRevealSummary
+            || previousVM.revealPairs.length !== vm.revealPairs.length
+            || getArchiveSignature(previousVM.archives) !== getArchiveSignature(vm.archives);
     };
 
     return {

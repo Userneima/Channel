@@ -24,7 +24,10 @@ const createMockDataService = () => ({
     publishPost: vi.fn(),
     publishComment: vi.fn(),
     updateIdentity: vi.fn(),
-    updateChannel: vi.fn()
+    updateChannel: vi.fn(),
+    updateChannelRoundState: vi.fn(),
+    listRoundMemberStatuses: vi.fn(),
+    resetChannelRoundProgress: vi.fn()
 });
 
 describe("channel settings dialog input stability", () => {

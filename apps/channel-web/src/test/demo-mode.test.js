@@ -68,9 +68,9 @@ describe("demo mode", () => {
         });
         await actions.submitPost();
 
-        expect(store.getState().feedState.items.some((item) => item.authorUserId === "demo-user" && item.board === "delivery")).toBe(true);
+        expect(store.getState().feedState.activeBoard).toBe("guess");
+        expect(store.getState().roundState.activeStage).toBe("guess");
 
-        await actions.setActiveBoard("guess");
         actions.selectMentionTarget({
             name: "瓜子",
             avatar: mentionMembers.find((member) => member.name === "瓜子")?.avatar || ""

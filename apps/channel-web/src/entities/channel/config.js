@@ -63,6 +63,23 @@ export const gameBoardStages = [
     }
 ];
 
+export const gameBoardStageValues = gameBoardStages.map((stage) => stage.value);
+
+export const defaultRoundDeadlines = Object.fromEntries(
+    gameBoardStages.map((stage) => [stage.value, stage.deadlineLabel])
+);
+
+export const getRoundStageIndex = (stageValue) => gameBoardStageValues.indexOf(stageValue);
+
+export const getNextRoundStage = (stageValue) => {
+    const currentIndex = getRoundStageIndex(stageValue);
+    if (currentIndex < 0 || currentIndex >= gameBoardStageValues.length - 1) {
+        return null;
+    }
+
+    return gameBoardStageValues[currentIndex + 1];
+};
+
 export const channelBoardChoices = gameBoardStages.map((stage) => ({
     value: stage.value,
     label: stage.label

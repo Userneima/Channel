@@ -1,7 +1,20 @@
 import { anonymizeComposerText, copyText, getChannelActionErrorMessage, getPostBodyText } from "../../shared/lib/helpers.js";
+import { getRoundStageIndex } from "../../entities/channel/config.js";
+import { isEntryOwnedByIdentity } from "../../shared/lib/anonymous-display.js";
+import { findCurrentMemberStatus } from "../round/model.js";
 
 const requestInteractionAccess = ({ store, showToast }) => {
     const state = store.getState();
+    if (state.roundState.archiveViewerRoundId || state.roundState.lifecycleStatus === "archived") {
+        showToast({
+            tone: "info",
+            message: state.roundState.archiveViewerRoundId
+                ? "当前正在查看历史归档，只能阅读不能互动。"
+                : "当前回合已经归档，只能阅读不能继续发帖。"
+        });
+        return false;
+    }
+
     const authStatus = state.authState.status;
     const membershipStatus = state.membershipState.status;
 
@@ -24,7 +37,7 @@ const requestInteractionAccess = ({ store, showToast }) => {
     if (membershipStatus !== "approved") {
         showToast({
             tone: "info",
-            message: "公开浏览可用，评论和互动需要先申请加入频道。"
+            message: "公开浏览可用，登录后会自动加入频道并解锁互动。"
         });
         return false;
     }
@@ -32,15 +45,57 @@ const requestInteractionAccess = ({ store, showToast }) => {
     return true;
 };
 
+const parseTime = (value) => {
+    const timestamp = Date.parse(value || "");
+    return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const getVisibleComments = (item) => (item.comments || []).filter((comment) => !comment?.isDeleted);
+
+const getPostCreatedTime = (item) => parseTime(item?.createdAt);
+
+const getLatestReplyTime = (item) => getVisibleComments(item)
+    .reduce((latestTime, comment) => Math.max(latestTime, parseTime(comment?.createdAt)), 0);
+
+const getLatestActivityTime = (item) => Math.max(getPostCreatedTime(item), getLatestReplyTime(item));
+
+const getHotScore = (item) => {
+    const visibleComments = getVisibleComments(item);
+    const likes = Number(item?.likes) || 0;
+    const views = Number(item?.views) || 0;
+
+    return (visibleComments.length * 8) + (likes * 5) + (views * 0.08);
+};
+
 const sortFeedItems = (items, filter) => {
+    if (filter === "hot") {
+        return [...items].sort((left, right) => {
+            const scoreDelta = getHotScore(right) - getHotScore(left);
+            if (scoreDelta !== 0) {
+                return scoreDelta;
+            }
+
+            const activityDelta = getLatestActivityTime(right) - getLatestActivityTime(left);
+            if (activityDelta !== 0) {
+                return activityDelta;
+            }
+
+            return getPostCreatedTime(right) - getPostCreatedTime(left);
+        });
+    }
+
+    if (filter === "new-post") {
+        return [...items].sort((left, right) => getPostCreatedTime(right) - getPostCreatedTime(left));
+    }
+
     if (filter === "new-reply") {
         return [...items].sort((left, right) => {
-            const leftCount = left.comments?.length || 0;
-            const rightCount = right.comments?.length || 0;
-            if (rightCount !== leftCount) {
-                return rightCount - leftCount;
+            const replyDelta = getLatestReplyTime(right) - getLatestReplyTime(left);
+            if (replyDelta !== 0) {
+                return replyDelta;
             }
-            return 0;
+
+            return getPostCreatedTime(right) - getPostCreatedTime(left);
         });
     }
 
@@ -50,6 +105,63 @@ const sortFeedItems = (items, filter) => {
 const findFeedPostById = (state, postId) => state.feedState.items.find((item) => item.id === postId) || null;
 
 const findDrawerCommentById = (state, commentId) => state.overlayState.comments.post?.comments?.find((comment) => comment.id === commentId) || null;
+
+const canAccessBoard = (state, board) => {
+    if (state.roundState.archiveViewerRoundId || state.roundState.lifecycleStatus === "archived") {
+        return true;
+    }
+
+    if (!board || board === "all") {
+        return true;
+    }
+
+    if (state.runtimeState.channel?.slug === "demo") {
+        return true;
+    }
+
+    if (["owner", "admin"].includes(state.runtimeState.realIdentity.role) && state.membershipState.status === "approved") {
+        return true;
+    }
+
+    return getRoundStageIndex(board) <= getRoundStageIndex(state.roundState.activeStage);
+};
+
+const getBlockedBoardMessage = (state, board) => {
+    const currentMemberStatus = findCurrentMemberStatus(state);
+    const currentStage = state.roundState.activeStage;
+
+    if (currentStage === "wish") {
+        return currentMemberStatus?.wishSubmitted
+            ? "你已经完成许愿了，等管理员切到选愿望阶段后再进入。"
+            : "请先发布你的愿望。";
+    }
+
+    if (currentStage === "claim") {
+        return currentMemberStatus?.claimSelected
+            ? "你已经选好愿望了，等管理员切到交付阶段后再进入。"
+            : "请先在选愿望阶段锁定 1 条愿望。";
+    }
+
+    if (currentStage === "delivery") {
+        if (!currentMemberStatus?.claimSelected) {
+            return "你还没有锁定愿望，先回选愿望阶段补上。";
+        }
+
+        return currentMemberStatus?.deliverySubmitted
+            ? "你已经完成交付了，等管理员切到猜测阶段后再进入。"
+            : "请先完成你的交付。";
+    }
+
+    if (currentStage === "guess") {
+        return currentMemberStatus?.guessSubmitted
+            ? "你已经完成猜测了，等管理员统一揭晓后再进入。"
+            : "请先提交你的猜测。";
+    }
+
+    return board
+        ? `当前还没开放这个板块。`
+        : "当前还没开放这个板块。";
+};
 
 const normalizeLightboxImage = (image) => {
     if (!image?.url) {
@@ -62,30 +174,62 @@ const normalizeLightboxImage = (image) => {
     };
 };
 
+const resolveFeedSourceBoard = (board) => (
+    board === "all"
+        ? "all"
+        : board === "claim"
+            ? "wish"
+            : board === "reveal"
+                ? "guess"
+                : board
+);
+
 export const createFeedActions = ({ store, dataService, showToast }) => ({
-    async loadFeed(board = store.getState().feedState.activeBoard) {
+    hydrateFeed(board = store.getState().feedState.activeBoard, items = []) {
         store.dispatch({
             type: "feed/set-board",
             payload: { board }
         });
-        store.dispatch({ type: "feed/load-start" });
+
+        const filter = store.getState().feedState.activeFilter;
+        store.dispatch({
+            type: "feed/load-success",
+            payload: { items: sortFeedItems(items, filter) }
+        });
+    },
+    async loadFeed(board = store.getState().feedState.activeBoard, options = {}) {
+        const { silent = false, skipCache = false } = options;
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board }
+        });
+        const state = store.getState();
+        const archiveViewer = state.roundState.archiveViewerRoundId ? state.roundState.archiveViewerDetail : null;
+        if (archiveViewer?.id && Array.isArray(archiveViewer.posts)) {
+            const sourceBoard = resolveFeedSourceBoard(board);
+            const items = sourceBoard === "all"
+                ? archiveViewer.posts
+                : archiveViewer.posts.filter((post) => post.board === sourceBoard);
+            this.hydrateFeed(board, items);
+            return;
+        }
+
+        const sourceBoard = resolveFeedSourceBoard(board);
+        const channelSlug = state.runtimeState.channel?.slug || "";
+        const cachedItems = !skipCache && typeof dataService.getCachedPosts === "function"
+            ? dataService.getCachedPosts(sourceBoard, channelSlug)
+            : [];
+        const hasCachedItems = Array.isArray(cachedItems) && cachedItems.length > 0;
+
+        if (hasCachedItems) {
+            this.hydrateFeed(board, cachedItems);
+        } else if (!silent) {
+            store.dispatch({ type: "feed/load-start" });
+        }
 
         try {
-            const nextBoard = board === "all"
-                ? null
-                : board === "claim"
-                    ? "wish"
-                    : board === "guess"
-                        ? "delivery"
-                    : board === "reveal"
-                        ? "guess"
-                    : board;
-            const items = await dataService.listPosts(nextBoard);
-            const filter = store.getState().feedState.activeFilter;
-            store.dispatch({
-                type: "feed/load-success",
-                payload: { items: sortFeedItems(items, filter) }
-            });
+            const items = await dataService.listPosts(sourceBoard);
+            this.hydrateFeed(board, items);
         } catch (error) {
             store.dispatch({
                 type: "feed/load-error",
@@ -98,7 +242,16 @@ export const createFeedActions = ({ store, dataService, showToast }) => ({
         }
     },
     async setActiveBoard(board) {
-        if (board && board !== "all") {
+        const state = store.getState();
+        if (!canAccessBoard(state, board)) {
+            showToast({
+                tone: "info",
+                message: getBlockedBoardMessage(state, board)
+            });
+            return;
+        }
+
+        if (state.runtimeState.channel?.slug === "demo" && board && board !== "all") {
             store.dispatch({
                 type: "round/set-stage",
                 payload: {
@@ -182,15 +335,39 @@ export const createFeedActions = ({ store, dataService, showToast }) => ({
             return;
         }
 
-        if (state.roundState.activeStage !== "claim") {
+        if (state.feedState.activeBoard !== "claim") {
             showToast({
                 tone: "info",
-                message: "当前不在选愿望阶段。"
+                message: "请先进入选愿望板块。"
             });
             return;
         }
 
-        if (post.authorUserId && post.authorUserId === state.authState.user?.id) {
+        if (state.roundState.claimSelection?.postId === postId) {
+            try {
+                await dataService.clearClaimSelection();
+                store.dispatch({
+                    type: "round/set-claim-selection",
+                    payload: { selection: null }
+                });
+                showToast({
+                    tone: "success",
+                    message: "已取消这个愿望。"
+                });
+            } catch (error) {
+                showToast({
+                    tone: "error",
+                    message: getChannelActionErrorMessage("update_round_state", error)
+                });
+            }
+            return;
+        }
+
+        if (isEntryOwnedByIdentity(post, {
+            id: state.runtimeState.realIdentity.id,
+            name: state.runtimeState.realIdentity.name,
+            userId: state.authState.user?.id || null
+        })) {
             showToast({
                 tone: "info",
                 message: "不能选择自己发的愿望。"
@@ -218,10 +395,26 @@ export const createFeedActions = ({ store, dataService, showToast }) => ({
         }
     },
     openComments(postId, source = "comments") {
+        const state = store.getState();
+        const currentFeedPost = findFeedPostById(state, postId);
         store.dispatch({
             type: "comments/open",
             payload: { postId, source }
         });
+        if (currentFeedPost) {
+            store.dispatch({
+                type: "comments/load-success",
+                payload: { post: currentFeedPost }
+            });
+        } else if (typeof dataService.getCachedPost === "function") {
+            const cachedPost = dataService.getCachedPost(postId, state.runtimeState.channel?.slug || "");
+            if (cachedPost) {
+                store.dispatch({
+                    type: "comments/load-success",
+                    payload: { post: cachedPost }
+                });
+            }
+        }
         void this.refreshComments();
     },
     openPostImage(postId, imageIndex = 0) {
@@ -444,6 +637,14 @@ export const createFeedActions = ({ store, dataService, showToast }) => ({
         }
     },
     requestDeletePost(postId) {
+        if (store.getState().roundState.archiveViewerRoundId || store.getState().roundState.lifecycleStatus === "archived") {
+            showToast({
+                tone: "info",
+                message: "归档内容当前是只读的，不能再删除。"
+            });
+            return;
+        }
+
         const state = store.getState();
         const overlayPost = state.overlayState.comments.post;
         const post = findFeedPostById(state, postId)
@@ -472,6 +673,14 @@ export const createFeedActions = ({ store, dataService, showToast }) => ({
         });
     },
     requestDeleteComment(commentId) {
+        if (store.getState().roundState.archiveViewerRoundId || store.getState().roundState.lifecycleStatus === "archived") {
+            showToast({
+                tone: "info",
+                message: "归档内容当前是只读的，不能再删除。"
+            });
+            return;
+        }
+
         const state = store.getState();
         const comment = findDrawerCommentById(state, commentId);
         if (!comment || comment.isDeleted) {

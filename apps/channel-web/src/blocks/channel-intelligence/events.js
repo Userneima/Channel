@@ -3,14 +3,6 @@ export const attachChannelIntelligenceEvents = ({ root, actions }) => {
         const panelAction = event.target.closest("[data-channel-intelligence-action]");
         if (panelAction) {
             const action = panelAction.dataset.channelIntelligenceAction;
-            if (action === "open") {
-                actions.openOverlay("channel-intelligence");
-                return;
-            }
-            if (action === "close") {
-                actions.closeOverlay("channel-intelligence");
-                return;
-            }
             if (action === "toggle-god-picker") {
                 actions.toggleRoundGodPicker();
                 return;
@@ -47,14 +39,49 @@ export const attachChannelIntelligenceEvents = ({ root, actions }) => {
                 actions.saveRoundRevealPair();
                 return;
             }
+            if (action === "archive-current-round") {
+                void actions.completeRoundCycle();
+                return;
+            }
+            if (action === "force-archive-current-round") {
+                void actions.forceArchiveCurrentRound();
+                return;
+            }
+            if (action === "restore-archive") {
+                void actions.restoreArchivedRound();
+                return;
+            }
+            if (action === "rename-archive") {
+                void actions.renameArchivedRound();
+                return;
+            }
+            if (action === "view-archive-board") {
+                void actions.viewSelectedArchiveInBoard();
+                return;
+            }
+            if (action === "close-archive-detail") {
+                actions.closeArchiveDetail();
+                return;
+            }
+            if (action === "exit-archive-viewer") {
+                void actions.exitArchiveViewer();
+                return;
+            }
         }
 
         const godOption = event.target.closest("[data-channel-intelligence-god]");
         if (godOption) {
             actions.assignRoundGod({
                 name: godOption.dataset.channelIntelligenceGod,
-                avatar: godOption.dataset.channelIntelligenceAvatar || ""
+                avatar: godOption.dataset.channelIntelligenceAvatar || "",
+                userId: godOption.dataset.channelIntelligenceUserId || null
             });
+            return;
+        }
+
+        const archiveOption = event.target.closest("[data-channel-intelligence-archive]");
+        if (archiveOption) {
+            void actions.selectRoundArchive(archiveOption.dataset.channelIntelligenceArchive || "");
             return;
         }
 
@@ -75,17 +102,6 @@ export const attachChannelIntelligenceEvents = ({ root, actions }) => {
             });
             return;
         }
-
-        const trigger = event.target.closest("[data-channel-intelligence-post-id]");
-        if (!trigger) {
-            return;
-        }
-
-        actions.closeOverlay("channel-intelligence");
-        actions.openOverlay("comments", {
-            postId: trigger.dataset.channelIntelligencePostId,
-            source: "body"
-        });
     });
 
     root.addEventListener("input", (event) => {

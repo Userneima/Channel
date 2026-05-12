@@ -3,66 +3,13 @@ import { createChannelCreateActions } from "./channel-create/index.js";
 import { createComposerActions } from "./composer/index.js";
 import { createFeedActions } from "./feed/index.js";
 import { createMembershipActions } from "./membership/index.js";
+import { createRoundActions } from "./round/actions.js";
 import { createRuntimeActions } from "./runtime/index.js";
 import { createShellActions } from "./shell/index.js";
 import { getChannelActionErrorMessage, readBlobAsDataUrl } from "../shared/lib/helpers.js";
-import { mentionMembers } from "../entities/identity/config.js";
-
-const extractRevealTargetName = (body) => {
-    const firstLine = String(body || "").split(/\r?\n/, 1)[0]?.trim() || "";
-    if (!firstLine.startsWith("@")) {
-        return "";
-    }
-    return firstLine.slice(1).trim();
-};
-
-const buildRevealAvatarMap = (state) => {
-    const avatarByName = new Map(
-        mentionMembers.map((member) => [String(member.name || "").trim(), String(member.avatar || "").trim()])
-    );
-    const realName = String(state.runtimeState.realIdentity.name || "").trim();
-    if (realName) {
-        avatarByName.set(realName, String(state.runtimeState.realIdentity.avatar || "").trim());
-    }
-    return avatarByName;
-};
-
-const buildRevealMapFromDeliveryPosts = (posts, state) => {
-    const avatarByName = buildRevealAvatarMap(state);
-    const nextRevealMap = {};
-    const orderedPosts = [...(posts || [])]
-        .filter((post) => post && !post.isDeleted && post.board === "delivery")
-        .sort((left, right) => Date.parse(right.createdAt || 0) - Date.parse(left.createdAt || 0));
-
-    orderedPosts.forEach((post) => {
-        const memberName = extractRevealTargetName(post.text);
-        const angelName = String(post.adminRevealIdentity?.name || "").trim();
-        if (!memberName || !angelName || memberName === angelName || nextRevealMap[memberName]) {
-            return;
-        }
-
-        nextRevealMap[memberName] = {
-            member: {
-                name: memberName,
-                avatar: avatarByName.get(memberName) || ""
-            },
-            angel: {
-                name: angelName,
-                avatar: String(post.adminRevealIdentity?.avatar || avatarByName.get(angelName) || "").trim()
-            },
-            updatedAt: new Date().toISOString()
-        };
-    });
-
-    return nextRevealMap;
-};
 
 export const createAppActions = ({ store, dataService }) => {
     let toastTimer = null;
-
-    const canManageRound = (state) => ["owner", "admin"].includes(state.runtimeState.realIdentity.role);
-    const canEditRoundTheme = (state) => canManageRound(state)
-        || state.runtimeState.realIdentity.name === state.roundState.godProfile?.name;
 
     const showToast = ({ tone = "info", message }) => {
         store.dispatch({
@@ -94,8 +41,24 @@ export const createAppActions = ({ store, dataService }) => {
     const composerActions = createComposerActions({ store, dataService, showToast, feedActions });
     const authActions = createAuthActions({ store, dataService, showToast, runtimeActions });
     const membershipActions = createMembershipActions({ store, dataService, showToast, runtimeActions });
+    const roundActions = createRoundActions({
+        store,
+        dataService,
+        showToast,
+        loadFeed: (board) => feedActions.loadFeed(board)
+    });
 
-    return {
+    const baseInitializeChannelRuntime = runtimeActions.initializeChannelRuntime;
+    const baseRefreshChannelAccessState = runtimeActions.refreshChannelAccessState;
+    const baseClaimWish = feedActions.claimWish;
+    const baseSubmitPost = composerActions.submitPost;
+    const baseApproveJoinRequest = membershipActions.approveJoinRequest;
+    const baseRejectJoinRequest = membershipActions.rejectJoinRequest;
+    const basePromoteMemberToAdmin = membershipActions.promoteMemberToAdmin;
+    const baseDemoteAdminToMember = membershipActions.demoteAdminToMember;
+    const baseConfirmRemoveMember = membershipActions.confirmRemoveMember;
+
+    const appActions = {
         ...shellActions,
         ...feedActions,
         ...composerActions,
@@ -103,6 +66,47 @@ export const createAppActions = ({ store, dataService }) => {
         ...membershipActions,
         ...runtimeActions,
         ...channelCreateActions,
+        ...roundActions,
+        async initializeChannelRuntime() {
+            await baseInitializeChannelRuntime.call(appActions);
+            await appActions.refreshCurrentRound({ silent: true });
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+            await appActions.refreshRoundArchives({ silent: true });
+        },
+        async refreshChannelAccessState(payload) {
+            await baseRefreshChannelAccessState.call(appActions, payload);
+            await appActions.refreshCurrentRound({ silent: true });
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+            await appActions.refreshRoundArchives({ silent: true });
+        },
+        async claimWish(postId) {
+            await baseClaimWish.call(appActions, postId);
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+        },
+        async submitPost() {
+            await baseSubmitPost.call(appActions);
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+        },
+        async approveJoinRequest(requestId) {
+            await baseApproveJoinRequest.call(appActions, requestId);
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+        },
+        async rejectJoinRequest(requestId, reason = "") {
+            await baseRejectJoinRequest.call(appActions, requestId, reason);
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+        },
+        async promoteMemberToAdmin(identityId) {
+            await basePromoteMemberToAdmin.call(appActions, identityId);
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+        },
+        async demoteAdminToMember(identityId) {
+            await baseDemoteAdminToMember.call(appActions, identityId);
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+        },
+        async confirmRemoveMember(identityId) {
+            await baseConfirmRemoveMember.call(appActions, identityId);
+            await appActions.refreshRoundMemberStatuses({ silent: true });
+        },
         openOverlay(name, payload = {}) {
             if (name === "comments" && payload.postId) {
                 this.openComments(payload.postId, payload.source || "comments");
@@ -117,11 +121,15 @@ export const createAppActions = ({ store, dataService }) => {
                 return;
             }
             if (name === "member-list") {
-                this.openMemberList();
+                void this.openMemberList();
                 return;
             }
             if (name === "channel-intelligence") {
-                this.openChannelIntelligence();
+                this.openChannelDigest();
+                return;
+            }
+            if (name === "round-management") {
+                this.openRoundManagement();
                 return;
             }
             if (name === "image-lightbox" && payload.image) {
@@ -168,7 +176,11 @@ export const createAppActions = ({ store, dataService }) => {
                 return;
             }
             if (name === "channel-intelligence") {
-                this.closeChannelIntelligence();
+                this.closeChannelDigest();
+                return;
+            }
+            if (name === "round-management") {
+                this.closeRoundManagement();
                 return;
             }
             if (name === "image-lightbox") {
@@ -193,305 +205,40 @@ export const createAppActions = ({ store, dataService }) => {
         },
         showToast,
         hideToast,
-        openChannelIntelligence() {
+        openChannelDigest() {
             store.dispatch({ type: "channel-intelligence/open" });
         },
-        closeChannelIntelligence() {
+        closeChannelDigest() {
             store.dispatch({ type: "channel-intelligence/close" });
         },
-        openMemberList() {
-            store.dispatch({ type: "member-list/open" });
+        openChannelIntelligence() {
+            appActions.openChannelDigest();
+        },
+        closeChannelIntelligence() {
+            appActions.closeChannelDigest();
+        },
+        openRoundManagement() {
+            store.dispatch({ type: "round-management/open" });
+        },
+        closeRoundManagement() {
+            store.dispatch({ type: "round-management/close" });
+        },
+        async openMemberList() {
+            const role = store.getState().runtimeState.realIdentity.role;
+            const canManageMembers = ["owner", "admin"].includes(role);
+            store.dispatch({
+                type: "member-list/open",
+                payload: {
+                    mode: canManageMembers ? "manage" : "view"
+                }
+            });
+
+            if (canManageMembers) {
+                await this.loadMemberDirectory();
+            }
         },
         closeMemberList() {
             store.dispatch({ type: "member-list/close" });
-        },
-        toggleRoundGodPicker() {
-            const current = store.getState().overlayState.channelIntelligence.godPickerOpen;
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    godPickerOpen: !current,
-                    themeEditorOpen: false
-                }
-            });
-        },
-        async assignRoundGod(godProfile) {
-            const state = store.getState();
-            if (!canManageRound(state)) {
-                showToast({
-                    tone: "info",
-                    message: "只有频道管理员才能指定本周上帝。"
-                });
-                return;
-            }
-
-            try {
-                const nextChannel = await dataService.updateChannelRoundState({ godProfile });
-                store.dispatch({
-                    type: "runtime/update-channel",
-                    payload: { channel: nextChannel }
-                });
-                store.dispatch({
-                    type: "channel-intelligence/set-field",
-                    payload: {
-                        godPickerOpen: false,
-                        themeEditorOpen: false
-                    }
-                });
-                showToast({
-                    tone: "success",
-                    message: "本周上帝已更新。"
-                });
-            } catch (error) {
-                showToast({
-                    tone: "error",
-                    message: getChannelActionErrorMessage("update_round_state", error)
-                });
-            }
-        },
-        toggleRoundThemeEditor() {
-            const state = store.getState();
-            const current = state.overlayState.channelIntelligence.themeEditorOpen;
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    godPickerOpen: false,
-                    themeEditorOpen: !current,
-                    draftTheme: state.roundState.theme || ""
-                }
-            });
-        },
-        cancelRoundThemeEditing() {
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    themeEditorOpen: false,
-                    draftTheme: store.getState().roundState.theme || ""
-                }
-            });
-        },
-        setRoundThemeDraft(value) {
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: { draftTheme: value }
-            });
-        },
-        toggleRoundRevealEditor() {
-            const state = store.getState();
-            const current = state.overlayState.channelIntelligence.revealEditorOpen;
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    godPickerOpen: false,
-                    themeEditorOpen: false,
-                    revealEditorOpen: !current,
-                    revealMemberPickerOpen: false,
-                    revealAngelPickerOpen: false,
-                    draftRevealMember: current ? null : state.overlayState.channelIntelligence.draftRevealMember,
-                    draftRevealAngel: current ? null : state.overlayState.channelIntelligence.draftRevealAngel
-                }
-            });
-        },
-        toggleRoundRevealMemberPicker() {
-            const current = store.getState().overlayState.channelIntelligence.revealMemberPickerOpen;
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    revealMemberPickerOpen: !current,
-                    revealAngelPickerOpen: false
-                }
-            });
-        },
-        toggleRoundRevealAngelPicker() {
-            const current = store.getState().overlayState.channelIntelligence.revealAngelPickerOpen;
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    revealAngelPickerOpen: !current,
-                    revealMemberPickerOpen: false
-                }
-            });
-        },
-        chooseRoundRevealMember(member) {
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    draftRevealMember: member ? { ...member } : null,
-                    revealMemberPickerOpen: false
-                }
-            });
-        },
-        chooseRoundRevealAngel(member) {
-            store.dispatch({
-                type: "channel-intelligence/set-field",
-                payload: {
-                    draftRevealAngel: member ? { ...member } : null,
-                    revealAngelPickerOpen: false
-                }
-            });
-        },
-        async saveRoundRevealPair() {
-            const state = store.getState();
-            if (!canManageRound(state)) {
-                showToast({
-                    tone: "info",
-                    message: "只有频道管理员才能配置揭晓结果。"
-                });
-                return;
-            }
-
-            const draftMember = state.overlayState.channelIntelligence.draftRevealMember;
-            const draftAngel = state.overlayState.channelIntelligence.draftRevealAngel;
-            if (!draftMember?.name || !draftAngel?.name) {
-                showToast({
-                    tone: "info",
-                    message: "先选要揭晓的成员，再选他对应的天使。"
-                });
-                return;
-            }
-
-            if (draftMember.name === draftAngel.name) {
-                showToast({
-                    tone: "info",
-                    message: "揭晓对象和天使不能是同一个人。"
-                });
-                return;
-            }
-
-            const nextRevealMap = {
-                ...(state.roundState.revealMap || {}),
-                [draftMember.name]: {
-                    member: {
-                        name: draftMember.name,
-                        avatar: draftMember.avatar || ""
-                    },
-                    angel: {
-                        name: draftAngel.name,
-                        avatar: draftAngel.avatar || ""
-                    },
-                    updatedAt: new Date().toISOString()
-                }
-            };
-
-            try {
-                const nextChannel = await dataService.updateChannelRoundState({
-                    revealMap: nextRevealMap
-                });
-                store.dispatch({
-                    type: "runtime/update-channel",
-                    payload: { channel: nextChannel }
-                });
-                store.dispatch({
-                    type: "channel-intelligence/set-field",
-                    payload: {
-                        revealEditorOpen: false,
-                        revealMemberPickerOpen: false,
-                        revealAngelPickerOpen: false,
-                        draftRevealMember: null,
-                        draftRevealAngel: null
-                    }
-                });
-                showToast({
-                    tone: "success",
-                    message: "揭晓配对已保存。"
-                });
-            } catch (error) {
-                showToast({
-                    tone: "error",
-                    message: getChannelActionErrorMessage("update_round_state", error)
-                });
-            }
-        },
-        async generateRoundRevealResults() {
-            const state = store.getState();
-            if (!canManageRound(state)) {
-                showToast({
-                    tone: "info",
-                    message: "只有频道管理员才能生成揭晓结果。"
-                });
-                return;
-            }
-
-            try {
-                const deliveryPosts = await dataService.listPosts("delivery");
-                const nextRevealMap = buildRevealMapFromDeliveryPosts(deliveryPosts, state);
-                const pairCount = Object.keys(nextRevealMap).length;
-
-                if (!pairCount) {
-                    showToast({
-                        tone: "info",
-                        message: "还没有足够的交付数据可用于生成揭晓结果。"
-                    });
-                    return;
-                }
-
-                const nextChannel = await dataService.updateChannelRoundState({
-                    revealMap: nextRevealMap
-                });
-                store.dispatch({
-                    type: "runtime/update-channel",
-                    payload: { channel: nextChannel }
-                });
-                store.dispatch({
-                    type: "channel-intelligence/set-field",
-                    payload: {
-                        revealEditorOpen: false,
-                        revealMemberPickerOpen: false,
-                        revealAngelPickerOpen: false,
-                        draftRevealMember: null,
-                        draftRevealAngel: null
-                    }
-                });
-                showToast({
-                    tone: "success",
-                    message: `已根据交付内容生成 ${pairCount} 对揭晓结果。`
-                });
-            } catch (error) {
-                showToast({
-                    tone: "error",
-                    message: getChannelActionErrorMessage("update_round_state", error)
-                });
-            }
-        },
-        async saveRoundTheme() {
-            const state = store.getState();
-            if (!canEditRoundTheme(state)) {
-                showToast({
-                    tone: "info",
-                    message: "只有本周上帝或频道管理员才能设定主题。"
-                });
-                return;
-            }
-
-            const draftTheme = state.overlayState.channelIntelligence.draftTheme.trim();
-            if (!draftTheme) {
-                showToast({
-                    tone: "info",
-                    message: "先输入本周主题。"
-                });
-                return;
-            }
-
-            try {
-                const nextChannel = await dataService.updateChannelRoundState({ theme: draftTheme });
-                store.dispatch({
-                    type: "runtime/update-channel",
-                    payload: { channel: nextChannel }
-                });
-                store.dispatch({
-                    type: "channel-intelligence/set-field",
-                    payload: { themeEditorOpen: false }
-                });
-                showToast({
-                    tone: "success",
-                    message: "本周主题已更新。"
-                });
-            } catch (error) {
-                showToast({
-                    tone: "error",
-                    message: getChannelActionErrorMessage("update_round_state", error)
-                });
-            }
         },
         openChannelSettings() {
             const role = store.getState().runtimeState.realIdentity.role;
@@ -583,4 +330,6 @@ export const createAppActions = ({ store, dataService }) => {
             return store.getState().overlayState.deleteConfirm;
         }
     };
+
+    return appActions;
 };

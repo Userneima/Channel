@@ -1,5 +1,6 @@
 import { postCommentsSortChoices } from "../../entities/post/config.js";
 import { buildCommentThreadSummary } from "../../shared/lib/channel-intelligence.js";
+import { buildProtectedAuthorDisplay } from "../../shared/lib/anonymous-display.js";
 
 const buildThreadedComments = (comments, sort) => {
     const enrichedComments = comments.map((comment, index) => ({
@@ -82,11 +83,19 @@ export const selectCommentDrawerVM = (state) => {
     const canManageAnonymous = ["owner", "admin"].includes(state.runtimeState.realIdentity.role);
     const showAdminReveal = canManageAnonymous && state.uiState.adminRevealAnonymous;
     const canModerateContent = membershipStatus === "approved" && canManageAnonymous;
-    const canInteract = authStatus === "authenticated" && membershipStatus === "approved" && !post?.isDeleted;
+    const isReadOnlyRound = Boolean(state.roundState.archiveViewerRoundId) || state.roundState.lifecycleStatus === "archived";
+    const canInteract = authStatus === "authenticated" && membershipStatus === "approved" && !post?.isDeleted && !isReadOnlyRound;
     const activeAlias = state.runtimeState.anonymousProfiles.find((profile) => profile.key === state.runtimeState.activeAliasKey)
         || state.runtimeState.anonymousProfiles[0]
         || null;
     const postSummaryLines = [];
+    const postDisplay = post ? {
+        ...post,
+        ...buildProtectedAuthorDisplay(post, {
+            anonymousProfiles: state.runtimeState.anonymousProfiles,
+            showAdminReveal
+        })
+    } : null;
 
     return {
         open: overlay.open,
@@ -98,7 +107,7 @@ export const selectCommentDrawerVM = (state) => {
         initialFocusTarget: overlay.initialFocusTarget,
         sort: overlay.sort,
         sortChoices: postCommentsSortChoices,
-        post,
+        post: postDisplay,
         postSummaryLines,
         postSummarySource: "",
         threadSummary: post ? buildCommentThreadSummary(post) : null,
@@ -106,7 +115,7 @@ export const selectCommentDrawerVM = (state) => {
             ...comment,
             isLiked: overlay.likedCommentIds.includes(comment.id),
             showAdminReveal: Boolean(showAdminReveal && comment.isAnonymous && comment.adminRevealIdentity),
-            canDelete: !comment.isDeleted && membershipStatus === "approved" && Boolean(currentUserId) && (
+            canDelete: !isReadOnlyRound && !comment.isDeleted && membershipStatus === "approved" && Boolean(currentUserId) && (
                 comment.authorUserId === currentUserId || canModerateContent
             )
         })),
@@ -119,7 +128,7 @@ export const selectCommentDrawerVM = (state) => {
         canSend: Boolean(overlay.draftText.trim()) && overlay.submitStatus !== "submitting" && overlay.status === "ready" && canInteract,
         copyEnabled: Boolean(post) && !post?.isDeleted,
         canInteract,
-        canDeletePost: !post?.isDeleted && membershipStatus === "approved" && Boolean(currentUserId) && (
+        canDeletePost: !isReadOnlyRound && !post?.isDeleted && membershipStatus === "approved" && Boolean(currentUserId) && (
             post?.authorUserId === currentUserId || canModerateContent
         ),
         accessHint: authStatus === "guest"
@@ -128,10 +137,12 @@ export const selectCommentDrawerVM = (state) => {
                 ? "升级为正式账号后才能评论"
                 : post?.isDeleted
                     ? "原帖已删除，无法继续评论"
+                : isReadOnlyRound
+                    ? "当前是只读归档，不能继续评论"
                 : membershipStatus === "approved"
                     ? overlay.anonymousMode
                         ? "匿名回复会自动去除明显个人措辞"
                         : "发言要友善，畅聊不引战"
-                    : "申请加入频道后才能评论"
+                    : "频道身份正在同步，稍后再试"
     };
 };

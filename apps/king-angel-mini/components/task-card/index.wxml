@@ -1,0 +1,7 @@
+<view class="task panel">
+  <view class="status">{{task.status}}</view>
+  <view class="task-title">{{task.title}}</view>
+  <view class="task-meta">{{task.meta}}</view>
+  <button wx:if="{{task.canSubmit}}" class="button" bindtap="onTap">{{buttonText}}</button>
+  <view wx:else class="blocked">{{task.blockedReason}}</view>
+</view>

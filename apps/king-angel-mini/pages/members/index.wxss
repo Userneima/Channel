@@ -1,0 +1,9 @@
+.members {
+    padding: 32rpx;
+}
+
+.error {
+    margin-top: 20rpx;
+    color: #9b3d2e;
+    font-size: 26rpx;
+}

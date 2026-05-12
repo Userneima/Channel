@@ -1,14 +1,79 @@
 import { escapeHtml } from "../../shared/lib/helpers.js";
 
+const buildMemberActions = (member) => {
+    if (!member.canPromote && !member.canDemote && !member.canRemove) {
+        return "";
+    }
+
+    return `
+        <div class="member-list-dialog__actions">
+            ${member.canPromote ? `
+                <button class="member-list-dialog__action" data-member-list-action="promote" data-member-list-identity-id="${escapeHtml(member.identityId)}" ${member.actionsLocked ? "disabled" : ""} type="button">
+                    ${member.isBusy ? "处理中" : "设为管理员"}
+                </button>
+            ` : ""}
+            ${member.canDemote ? `
+                <button class="member-list-dialog__action" data-member-list-action="demote" data-member-list-identity-id="${escapeHtml(member.identityId)}" ${member.actionsLocked ? "disabled" : ""} type="button">
+                    ${member.isBusy ? "处理中" : "取消管理员"}
+                </button>
+            ` : ""}
+            ${member.canRemove ? `
+                <button class="member-list-dialog__action member-list-dialog__action--danger" data-member-list-action="request-remove" data-member-list-identity-id="${escapeHtml(member.identityId)}" ${member.actionsLocked ? "disabled" : ""} type="button">
+                    ${member.isBusy ? "处理中" : "移除成员"}
+                </button>
+            ` : ""}
+        </div>
+    `;
+};
+
+const buildRemoveConfirm = (member) => {
+    if (!member.confirmRemove) {
+        return "";
+    }
+
+    return `
+        <div class="member-list-dialog__confirm">
+            <div class="member-list-dialog__confirm-copy">移除后将失去频道访问权限，但历史内容会保留。</div>
+            <div class="member-list-dialog__confirm-actions">
+                <button class="member-list-dialog__confirm-button" data-member-list-action="cancel-remove" type="button" ${member.actionsLocked ? "disabled" : ""}>取消</button>
+                <button class="member-list-dialog__confirm-button member-list-dialog__confirm-button--danger" data-member-list-action="confirm-remove" data-member-list-identity-id="${escapeHtml(member.identityId)}" type="button" ${member.actionsLocked ? "disabled" : ""}>
+                    ${member.isBusy ? "移除中" : "确认移除"}
+                </button>
+            </div>
+        </div>
+    `;
+};
+
 const buildMemberItem = (member) => `
     <div class="member-list-dialog__item">
-        <img alt="${escapeHtml(member.name)}" class="member-list-dialog__avatar" src="${member.avatar}" />
-        <div class="member-list-dialog__copy">
-            <div class="member-list-dialog__name">${escapeHtml(member.name)}</div>
-            <div class="member-list-dialog__meta">社区成员</div>
+        <div class="member-list-dialog__row">
+            <img alt="${escapeHtml(member.name)}" class="member-list-dialog__avatar" src="${member.avatar}" />
+            <div class="member-list-dialog__copy">
+                <div class="member-list-dialog__name">${escapeHtml(member.name)}</div>
+                <div class="member-list-dialog__meta">${escapeHtml(member.roleLabel)}</div>
+            </div>
+            <span class="member-list-dialog__role">${escapeHtml(member.roleLabel)}</span>
         </div>
+        ${buildMemberActions(member)}
+        ${buildRemoveConfirm(member)}
     </div>
 `;
+
+const buildBodyContent = (vm) => {
+    if (vm.loading) {
+        return '<div class="member-list-dialog__status">正在同步成员目录...</div>';
+    }
+
+    if (vm.error) {
+        return `<div class="member-list-dialog__status member-list-dialog__status--error">${escapeHtml(vm.error)}</div>`;
+    }
+
+    if (!vm.members.length) {
+        return '<div class="member-list-dialog__empty">当前还没有可展示的成员。</div>';
+    }
+
+    return vm.members.map(buildMemberItem).join("");
+};
 
 export const memberListDialogTemplate = (vm) => `
     <div class="member-list-dialog ${vm.open ? "is-open" : ""}" aria-hidden="${vm.open ? "false" : "true"}">
@@ -24,9 +89,7 @@ export const memberListDialogTemplate = (vm) => `
                 </button>
             </header>
             <div class="member-list-dialog__body">
-                ${vm.members.length
-        ? vm.members.map(buildMemberItem).join("")
-        : '<div class="member-list-dialog__empty">当前还没有可展示的成员。</div>'}
+                ${buildBodyContent(vm)}
             </div>
         </section>
     </div>

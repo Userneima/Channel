@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/game/index",
+    "pages/task/index",
+    "pages/members/index",
+    "pages/reveal/index",
+    "pages/profile/index",
+    "pages/admin/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "国王与天使",
+    "navigationBarBackgroundColor": "#f4efe5",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f4efe5",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

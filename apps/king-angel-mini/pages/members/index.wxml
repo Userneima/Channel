@@ -1,0 +1,7 @@
+<view class="page">
+  <view class="panel members">
+    <view class="title">游戏成员</view>
+    <member-row wx:for="{{members}}" wx:key="identityId" member="{{item}}" />
+  </view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+</view>

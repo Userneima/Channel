@@ -19,6 +19,7 @@ const createMockDataService = () => ({
     approveJoinRequest: vi.fn(),
     rejectJoinRequest: vi.fn(),
     createChannel: vi.fn(),
+    createAliasProfile: vi.fn(),
     listPosts: vi.fn(),
     getPost: vi.fn(),
     likePost: vi.fn(),
@@ -26,9 +27,13 @@ const createMockDataService = () => ({
     publishComment: vi.fn(),
     updateIdentity: vi.fn(),
     updateChannel: vi.fn(),
+    listChannelGuessSelections: vi.fn(),
+    listRoundMemberStatuses: vi.fn(),
     saveGuessSelection: vi.fn(),
     clearGuessSelection: vi.fn(),
-    updateChannelRoundState: vi.fn()
+    anonymizeAnonymousDraft: vi.fn(),
+    updateChannelRoundState: vi.fn(),
+    resetChannelRoundProgress: vi.fn()
 });
 
 describe("composer panel interactions", () => {
@@ -80,6 +85,10 @@ describe("composer panel interactions", () => {
             type: "round/set-stage",
             payload: { stage: "guess", forceAnonymous: false }
         });
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board: "guess" }
+        });
         block.render();
 
         expect(root.querySelector(".composer-panel--hidden")).toBeTruthy();
@@ -91,8 +100,26 @@ describe("composer panel interactions", () => {
             type: "round/set-stage",
             payload: { stage: "guess", forceAnonymous: false }
         });
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board: "guess" }
+        });
         block.render();
         expect(root.querySelector("[data-composer-action='toggle-ai-disclosure']")).toBeNull();
+    });
+
+    it("hides the inline composer while browsing the guess board even after the round has moved on", () => {
+        store.dispatch({
+            type: "round/set-stage",
+            payload: { stage: "reveal", forceAnonymous: false }
+        });
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board: "guess" }
+        });
+        block.render();
+
+        expect(root.querySelector(".composer-panel--hidden")).toBeTruthy();
     });
 
     it("shows a direct login action for guests", () => {
@@ -126,28 +153,125 @@ describe("composer panel interactions", () => {
         expect(store.getState().overlayState.authGate.mode).toBe("login");
     });
 
-    it("opens mention menu and selects a target member", () => {
+    it("locks the delivery target to the selected wish instead of exposing a mention picker", () => {
         store.dispatch({
             type: "round/set-stage",
             payload: { stage: "delivery", forceAnonymous: true }
+        });
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board: "delivery" }
+        });
+        store.dispatch({
+            type: "round/set-claim-selection",
+            payload: {
+                selection: {
+                    postId: "wish-1",
+                    authorName: "雯子",
+                    authorAvatar: "alias-avatar",
+                    previewText: "帮我看一下这个月的运势"
+                }
+            }
         });
         actions.expandComposer();
         block.render();
 
         const mentionToggle = root.querySelector("[data-composer-action='toggle-mention']");
-        expect(mentionToggle).toBeTruthy();
-
-        mentionToggle.click();
-        block.render();
-
-        const mentionOption = root.querySelector("[data-mention-member-name='雯子']");
-        expect(mentionOption).toBeTruthy();
-
-        mentionOption.click();
-        block.render();
-
-        expect(store.getState().composerState.mentionTarget?.name).toBe("雯子");
+        expect(mentionToggle).toBeNull();
         expect(root.textContent).toContain("To");
         expect(root.textContent).toContain("雯子");
+        expect(root.querySelector("[data-composer-action='clear-mention']")).toBeNull();
+    });
+
+    it("shows the delivery target in the collapsed composer before expanding", () => {
+        store.dispatch({
+            type: "round/set-stage",
+            payload: { stage: "delivery", forceAnonymous: true }
+        });
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board: "delivery" }
+        });
+        store.dispatch({
+            type: "round/set-claim-selection",
+            payload: {
+                selection: {
+                    postId: "wish-1",
+                    authorName: "雯子",
+                    authorAvatar: "alias-avatar",
+                    previewText: "帮我看一下这个月的运势"
+                }
+            }
+        });
+        block.render();
+
+        const collapsedChip = root.querySelector(".composer-panel__mention-chip--collapsed");
+        expect(collapsedChip).toBeTruthy();
+        expect(collapsedChip?.textContent).toContain("To");
+        expect(collapsedChip?.textContent).toContain("雯子");
+    });
+
+    it("renders reveal results in the main composer area", () => {
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board: "reveal" }
+        });
+        store.dispatch({
+            type: "runtime/update-channel",
+            payload: {
+                channel: {
+                    currentRoundStage: "reveal",
+                    currentRevealMap: {
+                        章鱼烧: {
+                            member: { name: "章鱼烧", avatar: "avatar" },
+                            angel: { name: "海屿", avatar: "haiyu-avatar" },
+                            wishPreview: "希望有人帮我把这轮发散的想法整理成可执行清单。",
+                            guessedAngelName: "白榆",
+                            guessedAngelAvatar: "baiyu-avatar"
+                        },
+                        苹果: {
+                            member: { name: "苹果", avatar: "apple-avatar" },
+                            angel: { name: "白榆", avatar: "baiyu-avatar" },
+                            wishPreview: "",
+                            guessedAngelName: "",
+                            guessedAngelAvatar: ""
+                        }
+                    }
+                }
+            }
+        });
+
+        block.render();
+
+        expect(root.textContent).toContain("我的揭晓结果");
+        expect(root.textContent).toContain("白榆");
+        expect(root.textContent).toContain("海屿");
+        expect(root.textContent).not.toContain("这位国王的愿望");
+    });
+
+    it("shows AI text preview controls in anonymous mode and removes the auto-rotate toggle", () => {
+        store.dispatch({
+            type: "composer/toggle-anonymous"
+        });
+        store.dispatch({
+            type: "composer/expand"
+        });
+        store.dispatch({
+            type: "composer/set-field",
+            payload: {
+                draftText: "我觉得我来试试",
+                anonymousTextRewrite: true,
+                anonymousPreviewStatus: "ready",
+                anonymousPreviewText: "更中性的看法是这边来试试",
+                anonymousPreviewSourceText: "我觉得我来试试"
+            }
+        });
+
+        block.render();
+
+        expect(root.textContent).toContain("AI 润色文本");
+        expect(root.textContent).toContain("AI 润色预览");
+        expect(root.textContent).toContain("更中性的看法是这边来试试");
+        expect(root.textContent).not.toContain("发完自动换马甲");
     });
 });

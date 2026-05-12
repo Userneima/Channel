@@ -1,0 +1,8 @@
+<view class="member-row">
+  <image wx:if="{{member.avatarUrl}}" class="avatar" src="{{member.avatarUrl}}" mode="aspectFill" />
+  <view wx:else class="avatar placeholder">{{member.displayName ? member.displayName.slice(0, 1) : '成'}}</view>
+  <view class="main">
+    <view class="name">{{member.displayName}}</view>
+    <view class="role">{{roleLabel}}</view>
+  </view>
+</view>

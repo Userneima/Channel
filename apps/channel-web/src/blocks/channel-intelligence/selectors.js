@@ -1,147 +1,195 @@
-import { gameBoardStages } from "../../entities/channel/config.js";
-import { mentionMembers } from "../../entities/identity/config.js";
-import { buildWeeklyDigest } from "../../shared/lib/channel-intelligence.js";
+import { defaultRoundDeadlines, gameBoardStages } from "../../entities/channel/config.js";
+import { isEntryOwnedByIdentity } from "../../shared/lib/anonymous-display.js";
+import { buildChannelMemberOptions } from "../../features/round/model.js";
 
 const stageByValue = new Map(gameBoardStages.map((stage) => [stage.value, stage]));
-
-const buildRoundMemberOptions = (state) => {
-    const memberMap = new Map();
-    const addMember = (member) => {
-        const name = String(member?.name || member?.authorName || "").trim();
-        if (!name || memberMap.has(name)) {
-            return;
-        }
-
-        memberMap.set(name, {
-            name,
-            avatar: String(member?.avatar || member?.authorAvatar || "").trim()
-        });
-    };
-
-    addMember({
-        name: state.runtimeState.realIdentity.name,
-        avatar: state.runtimeState.realIdentity.avatar
-    });
-    mentionMembers.forEach(addMember);
-    (state.feedState.items || []).forEach((post) => {
-        if (!post?.isAnonymous) {
-            addMember({
-                name: post.authorName,
-                avatar: post.authorAvatar
-            });
-        }
-        (post.comments || []).forEach((comment) => {
-            if (!comment?.isAnonymous) {
-                addMember({
-                    name: comment.authorName,
-                    avatar: comment.authorAvatar
-                });
-            }
-        });
-    });
-
-    Object.values(state.roundState.revealMap || {}).forEach((entry) => {
-        addMember(entry?.member);
-        addMember(entry?.angel);
-    });
-
-    return [...memberMap.values()];
-};
 
 const buildRevealPairs = (revealMap) => Object.values(revealMap || {})
     .filter((entry) => entry?.member?.name && entry?.angel?.name)
     .sort((left, right) => left.member.name.localeCompare(right.member.name, "zh-Hans-CN"));
 
 const hasAuthoredBoardPost = (state, boardValue) => {
-    const currentUserId = state.authState.user?.id || null;
-    if (!currentUserId) {
+    const currentIdentity = {
+        id: state.runtimeState.realIdentity.id,
+        name: state.runtimeState.realIdentity.name,
+        userId: state.authState.user?.id || null
+    };
+    if (!currentIdentity.id && !currentIdentity.name && !currentIdentity.userId) {
         return false;
     }
 
     return (state.feedState.items || []).some((post) => (
         !post?.isDeleted
         && post.board === boardValue
-        && post.authorUserId === currentUserId
+        && isEntryOwnedByIdentity(post, currentIdentity)
     ));
 };
 
+const buildTaskProgressByStage = ({ progress, currentGuess, revealMap, memberName, state }) => ({
+    wish: progress.wishSubmitted || hasAuthoredBoardPost(state, "wish"),
+    claim: progress.claimSelected,
+    delivery: progress.deliverySubmitted || hasAuthoredBoardPost(state, "delivery"),
+    guess: progress.guessSubmitted || Boolean(currentGuess?.name),
+    reveal: Boolean(revealMap?.[memberName])
+});
+
+const getTaskStatus = (stageValue, isDone, canCompose) => {
+    if (isDone) {
+        return "已完成";
+    }
+
+    if (stageValue === "claim") {
+        return "待完成";
+    }
+
+    if (stageValue === "reveal") {
+        return "待揭晓";
+    }
+
+    return canCompose ? "待完成" : "待开放";
+};
+
+const formatArchiveDate = (value) => {
+    const timestamp = Date.parse(value || "");
+    if (!Number.isFinite(timestamp)) {
+        return "未记录时间";
+    }
+
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+};
+
+const buildArchiveMetaLine = (archive) => {
+    const pairCount = Number(archive?.stats?.pairCount || archive?.revealPairs?.length || 0);
+    const godName = String(archive?.godProfile?.name || "").trim();
+    const completedDate = formatArchiveDate(archive?.completedAt || archive?.createdAt);
+    return [completedDate, godName ? `上帝 ${godName}` : "", `${pairCount} 对揭晓`]
+        .filter(Boolean)
+        .join(" · ");
+};
+
+const getDeadlineLabel = (deadline, fallback = "") => (
+    deadline && typeof deadline === "object"
+        ? String(deadline.label || fallback || "").trim()
+        : String(deadline || fallback || "").trim()
+);
+
+const viewOnlyReasonLabels = {
+    legacy_deadline_unknown: "旧摘要归档，只有结果摘要，不能恢复。",
+    legacy_summary: "旧摘要归档，只有结果摘要，不能恢复。",
+    missing_participants: "有参与成员已经不在当前频道，所以这个归档只能查看不能恢复。",
+    missing_deadline: "这个归档缺少绝对截止时间，所以只能查看不能恢复。",
+    deadline_passed: "这个归档后续阶段的截止时间已经过期，所以只能查看不能恢复。",
+    not_archived: "当前不是一个可恢复的归档。"
+};
+
 export const selectChannelIntelligenceVM = (state) => {
-    const digest = buildWeeklyDigest(state.feedState.items || []);
     const currentStage = stageByValue.get(state.roundState.activeStage) || gameBoardStages[0];
     const progress = state.roundState.progress || {};
     const godProfile = state.roundState.godProfile;
     const currentTheme = String(state.roundState.theme || "").trim();
     const role = state.runtimeState.realIdentity.role;
     const canManageRound = ["owner", "admin"].includes(role);
-    const canEditTheme = canManageRound || state.runtimeState.realIdentity.name === godProfile?.name;
-    const godOptions = buildRoundMemberOptions(state);
+    const isArchivedCurrentRound = state.roundState.lifecycleStatus === "archived";
+    const canEditTheme = !isArchivedCurrentRound && (canManageRound || state.runtimeState.realIdentity.name === godProfile?.name);
+    const godOptions = buildChannelMemberOptions(state);
     const revealPairs = buildRevealPairs(state.roundState.revealMap);
-    const revealResult = state.roundState.revealMap?.[state.runtimeState.realIdentity.name] || null;
+    const revealEntry = state.roundState.revealMap?.[state.runtimeState.realIdentity.name] || null;
     const currentGuess = state.roundState.guessSelection;
-    const wishSubmitted = progress.wishSubmitted || hasAuthoredBoardPost(state, "wish");
-    const deliverySubmitted = progress.deliverySubmitted || hasAuthoredBoardPost(state, "delivery");
-    const guessSubmitted = progress.guessSubmitted || Boolean(currentGuess?.name);
-    const currentStageDone = currentStage.value === "wish"
-        ? wishSubmitted
-        : currentStage.value === "claim"
-            ? progress.claimSelected
-            : currentStage.value === "delivery"
-                ? deliverySubmitted
-                : currentStage.value === "guess"
-                    ? guessSubmitted
-                    : Boolean((state.roundState.revealMap || {})[state.runtimeState.realIdentity.name]);
+    const taskStage = stageByValue.get(state.feedState.activeBoard) || currentStage;
+    const rawArchives = state.roundState.archives || [];
+    const selectedArchiveId = state.overlayState.channelIntelligence.selectedArchiveId;
+    const effectiveSelectedArchiveId = rawArchives.some((archive) => archive.id === selectedArchiveId)
+        ? selectedArchiveId
+        : null;
+    const archives = rawArchives.map((archive) => ({
+        ...archive,
+        displayTitle: archive.title || archive.theme || "未命名回合",
+        completedDateLabel: formatArchiveDate(archive.completedAt || archive.createdAt),
+        metaLine: buildArchiveMetaLine(archive),
+        isSelected: archive.id === effectiveSelectedArchiveId
+    }));
+    const selectedArchive = archives.find((archive) => archive.id === effectiveSelectedArchiveId) || null;
+    const archiveViewerDetail = state.roundState.archiveViewerDetail || null;
+    const selectedArchiveDetail = archiveViewerDetail?.id === effectiveSelectedArchiveId ? archiveViewerDetail : null;
+    const archiveDialogArchive = selectedArchive
+        ? {
+            ...selectedArchive,
+            ...(selectedArchiveDetail || {}),
+            displayTitle: selectedArchiveDetail?.title || selectedArchive.displayTitle,
+            metaLine: buildArchiveMetaLine(selectedArchiveDetail || selectedArchive),
+            isRestorable: selectedArchive.isRestorable,
+            viewOnlyReason: selectedArchive.viewOnlyReason,
+            archiveMode: selectedArchiveDetail?.archiveMode || selectedArchive.archiveMode,
+            stats: selectedArchiveDetail?.stats || selectedArchive.stats,
+            revealPairs: selectedArchiveDetail?.revealPairs || selectedArchive.revealPairs || []
+        }
+        : null;
+    const taskProgressByStage = buildTaskProgressByStage({
+        progress,
+        currentGuess,
+        revealMap: state.roundState.revealMap || {},
+        memberName: state.runtimeState.realIdentity.name,
+        state
+    });
+    const currentTaskDone = taskProgressByStage[taskStage.value];
+    const deadlines = state.roundState.deadlines || {};
 
     return {
-        open: state.overlayState.channelIntelligence.open,
-        godPickerOpen: state.overlayState.channelIntelligence.godPickerOpen,
-        themeEditorOpen: state.overlayState.channelIntelligence.themeEditorOpen,
-        revealEditorOpen: state.overlayState.channelIntelligence.revealEditorOpen,
-        revealMemberPickerOpen: state.overlayState.channelIntelligence.revealMemberPickerOpen,
-        revealAngelPickerOpen: state.overlayState.channelIntelligence.revealAngelPickerOpen,
-        draftRevealMember: state.overlayState.channelIntelligence.draftRevealMember,
-        draftRevealAngel: state.overlayState.channelIntelligence.draftRevealAngel,
-        draftTheme: state.overlayState.channelIntelligence.draftTheme || currentTheme,
-        status: digest.status,
-        title: "频道周报",
-        subtitle: "最近 7 天",
-        metricsLine: digest.status === "ready"
-            ? `${digest.totalPosts} 条帖子 · ${digest.totalComments} 条评论`
-            : "本周还没有足够内容生成周报",
+        godPickerOpen: state.overlayState.roundManagement.godPickerOpen,
+        themeEditorOpen: state.overlayState.roundManagement.themeEditorOpen,
+        revealEditorOpen: state.overlayState.roundManagement.revealEditorOpen,
+        revealMemberPickerOpen: state.overlayState.roundManagement.revealMemberPickerOpen,
+        revealAngelPickerOpen: state.overlayState.roundManagement.revealAngelPickerOpen,
+        draftRevealMember: state.overlayState.roundManagement.draftRevealMember,
+        draftRevealAngel: state.overlayState.roundManagement.draftRevealAngel,
+        draftTheme: state.overlayState.roundManagement.draftTheme || currentTheme,
         godProfile,
         godOptions,
         revealMemberOptions: godOptions,
         revealAngelOptions: godOptions,
         revealPairs,
-        revealResult: revealResult?.angel
+        showRevealSummary: currentStage.value === "reveal",
+        revealResult: revealEntry?.angel
             ? {
-                guessedName: currentGuess?.name || "",
-                actualName: revealResult.angel.name,
-                actualAvatar: revealResult.angel.avatar || "",
-                isCorrect: Boolean(currentGuess?.name) && currentGuess.name === revealResult.angel.name
+                guessedName: currentGuess?.name || revealEntry.guessedAngelName || "",
+                actualName: revealEntry.angel.name,
+                actualAvatar: revealEntry.angel.avatar || "",
+                isCorrect: Boolean(currentGuess?.name || revealEntry.guessedAngelName)
+                    && (currentGuess?.name || revealEntry.guessedAngelName) === revealEntry.angel.name
             }
             : null,
         currentTheme: currentTheme || "待本周上帝发布主题",
         hasTheme: Boolean(currentTheme),
         canManageRound,
         canEditTheme,
+        canArchiveRound: canManageRound && !isArchivedCurrentRound && currentStage.value === "reveal",
+        canForceArchiveRound: canManageRound && !isArchivedCurrentRound,
         currentStageLabel: currentStage.label,
-        currentTaskLabel: currentStage.taskLabel,
-        currentDeadlineLabel: currentStage.deadlineLabel,
-        currentTaskStatus: currentStageDone ? "已完成" : (currentStage.canCompose ? "待完成" : "待开放"),
-        currentTaskHint: currentStage.value === "reveal"
+        currentTaskLabel: taskStage.taskLabel,
+        currentTaskStageLabel: taskStage.label,
+        currentDeadlineLabel: getDeadlineLabel(deadlines[currentStage.value], currentStage.deadlineLabel),
+        currentTaskStatus: getTaskStatus(taskStage.value, currentTaskDone, taskStage.canCompose),
+        currentTaskHint: taskStage.value === "reveal"
             ? (
-                revealResult?.angel
-                    ? `你猜的是 ${currentGuess?.name || "未提交猜测"}，实际天使是 ${revealResult.angel.name}。`
+                revealEntry?.angel
+                    ? `你猜的是 ${currentGuess?.name || revealEntry.guessedAngelName || "未提交猜测"}，实际天使是 ${revealEntry.angel.name}。`
                     : "管理员一键生成揭晓结果后，这里会直接显示你的结果。"
             )
-            : currentStage.canCompose
-                ? currentStage.helperText
+            : taskStage.canCompose
+                ? taskStage.helperText
                 : "这个阶段先不发帖，等后续对应能力补上。",
-        compactHint: digest.status === "ready"
-            ? "点击查看本周高频议题、代表帖子和未解决问题"
-            : "当前先保留一个轻量入口，等内容积累后再展开查看",
-        topThemes: digest.topThemes,
-        representativePosts: digest.representativePosts,
-        openQuestions: digest.openQuestions
+        archives,
+        selectedArchive,
+        archiveDialogArchive,
+        archiveDetailOpen: Boolean(state.overlayState.channelIntelligence.archiveDetailOpen && selectedArchive),
+        archiveViewerDetail,
+        archiveViewerRoundId: state.roundState.archiveViewerRoundId,
+        archiveViewerActive: Boolean(state.roundState.archiveViewerRoundId),
+        selectedArchiveViewOnlyLabel: selectedArchive?.viewOnlyReason ? (viewOnlyReasonLabels[selectedArchive.viewOnlyReason] || "当前归档只能查看，不能恢复。") : "",
+        currentRoundArchived: isArchivedCurrentRound
     };
 };

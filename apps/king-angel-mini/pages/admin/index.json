@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "stage-progress": "../../components/stage-progress/index"
+  },
+  "navigationBarTitleText": "控场面板"
+}

@@ -1,5 +1,5 @@
 import { channelShellConfig } from "../../entities/channel/config.js";
-import { mentionMembers } from "../../entities/identity/config.js";
+import { buildChannelMemberOptions } from "../../features/round/model.js";
 
 const getChannelHeroStyle = (channel) => {
     const backgroundUrl = String(channel?.backgroundUrl || "").trim();
@@ -12,7 +12,7 @@ const getChannelHeroStyle = (channel) => {
 
 export const selectChannelHeroVM = (state) => ({
     channelName: state.runtimeState.channel?.name || "频道初始化中",
-    memberCountLabel: `${mentionMembers.length} 成员`,
+    memberCountLabel: `${buildChannelMemberOptions(state).length} 成员`,
     logoUrl: state.runtimeState.channel?.logoUrl || channelShellConfig.channelLogo,
     heroStyle: getChannelHeroStyle(state.runtimeState.channel),
     identityName: state.runtimeState.realIdentity.name

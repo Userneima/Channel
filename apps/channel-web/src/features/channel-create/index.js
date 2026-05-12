@@ -96,6 +96,11 @@ export const createChannelCreateActions = ({ store, dataService, showToast }) =>
                     status: "approved",
                     joinRequest: null,
                     reviewItems: [],
+                    directoryItems: [],
+                    directoryStatus: "idle",
+                    directoryError: null,
+                    mutationStatus: "idle",
+                    activeMemberId: null,
                     reviewStatus: "idle",
                     submitStatus: "idle",
                     error: null

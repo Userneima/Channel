@@ -42,20 +42,20 @@ export const createMembershipActions = ({ store, dataService, showToast, runtime
         });
 
         try {
-            const joinRequest = await dataService.submitJoinRequest(channelId, message);
+            const result = await dataService.submitJoinRequest(channelId, message);
             store.dispatch({
-                type: "membership/set-state",
+                type: "membership/set-field",
                 payload: {
-                    status: "pending",
-                    joinRequest,
                     draftMessage: "",
-                    submitStatus: "idle",
                     error: null
                 }
             });
+            await runtimeActions.refreshChannelAccessState({
+                reloadFeed: result?.status === "approved"
+            });
             showToast({
                 tone: "success",
-                message: "申请已提交，等待管理员审核。"
+                message: result?.status === "approved" ? "已进入频道。" : "加入申请已提交。"
             });
         } catch (error) {
             const message = getChannelActionErrorMessage("submit_join_request", error);
@@ -158,6 +158,206 @@ export const createMembershipActions = ({ store, dataService, showToast, runtime
             showToast({
                 tone: "error",
                 message
+            });
+        }
+    },
+    async loadMemberDirectory(channelId = store.getState().runtimeState.channel?.id) {
+        if (!channelId) {
+            return [];
+        }
+
+        store.dispatch({
+            type: "membership/set-directory-status",
+            payload: { status: "loading" }
+        });
+        store.dispatch({
+            type: "membership/set-field",
+            payload: {
+                directoryError: null
+            }
+        });
+
+        try {
+            const directoryItems = await dataService.listChannelMembers(channelId);
+            store.dispatch({
+                type: "membership/set-state",
+                payload: {
+                    directoryItems,
+                    directoryStatus: "idle",
+                    directoryError: null
+                }
+            });
+            return directoryItems;
+        } catch (error) {
+            const message = getChannelActionErrorMessage("load_channel_members", error);
+            store.dispatch({
+                type: "membership/set-state",
+                payload: {
+                    directoryStatus: "idle",
+                    directoryError: message
+                }
+            });
+            showToast({
+                tone: "error",
+                message
+            });
+            return [];
+        }
+    },
+    async promoteMemberToAdmin(identityId) {
+        store.dispatch({
+            type: "membership/set-mutation-status",
+            payload: {
+                status: "submitting",
+                identityId
+            }
+        });
+        store.dispatch({
+            type: "membership/set-field",
+            payload: {
+                directoryError: null
+            }
+        });
+
+        try {
+            await dataService.setChannelMemberRole(identityId, "admin");
+            await this.loadMemberDirectory();
+            await runtimeActions.loadMembershipState();
+            showToast({
+                tone: "success",
+                message: "已设为管理员。"
+            });
+        } catch (error) {
+            const message = getChannelActionErrorMessage("set_channel_member_role", error);
+            store.dispatch({
+                type: "membership/set-field",
+                payload: {
+                    directoryError: message
+                }
+            });
+            showToast({
+                tone: "error",
+                message
+            });
+        } finally {
+            store.dispatch({
+                type: "membership/set-mutation-status",
+                payload: {
+                    status: "idle",
+                    identityId: null
+                }
+            });
+        }
+    },
+    async demoteAdminToMember(identityId) {
+        store.dispatch({
+            type: "membership/set-mutation-status",
+            payload: {
+                status: "submitting",
+                identityId
+            }
+        });
+        store.dispatch({
+            type: "membership/set-field",
+            payload: {
+                directoryError: null
+            }
+        });
+
+        try {
+            await dataService.setChannelMemberRole(identityId, "member");
+            await this.loadMemberDirectory();
+            await runtimeActions.loadMembershipState();
+            showToast({
+                tone: "success",
+                message: "管理员权限已移除。"
+            });
+        } catch (error) {
+            const message = getChannelActionErrorMessage("set_channel_member_role", error);
+            store.dispatch({
+                type: "membership/set-field",
+                payload: {
+                    directoryError: message
+                }
+            });
+            showToast({
+                tone: "error",
+                message
+            });
+        } finally {
+            store.dispatch({
+                type: "membership/set-mutation-status",
+                payload: {
+                    status: "idle",
+                    identityId: null
+                }
+            });
+        }
+    },
+    requestRemoveMember(identityId) {
+        store.dispatch({
+            type: "member-list/set-field",
+            payload: {
+                pendingRemoveIdentityId: identityId
+            }
+        });
+    },
+    cancelRemoveMember() {
+        store.dispatch({
+            type: "member-list/set-field",
+            payload: {
+                pendingRemoveIdentityId: null
+            }
+        });
+    },
+    async confirmRemoveMember(identityId) {
+        store.dispatch({
+            type: "membership/set-mutation-status",
+            payload: {
+                status: "submitting",
+                identityId
+            }
+        });
+        store.dispatch({
+            type: "membership/set-field",
+            payload: {
+                directoryError: null
+            }
+        });
+
+        try {
+            await dataService.removeChannelMember(identityId);
+            store.dispatch({
+                type: "member-list/set-field",
+                payload: {
+                    pendingRemoveIdentityId: null
+                }
+            });
+            await this.loadMemberDirectory();
+            await runtimeActions.loadMembershipState();
+            showToast({
+                tone: "success",
+                message: "成员已移出频道。"
+            });
+        } catch (error) {
+            const message = getChannelActionErrorMessage("remove_channel_member", error);
+            store.dispatch({
+                type: "membership/set-field",
+                payload: {
+                    directoryError: message
+                }
+            });
+            showToast({
+                tone: "error",
+                message
+            });
+        } finally {
+            store.dispatch({
+                type: "membership/set-mutation-status",
+                payload: {
+                    status: "idle",
+                    identityId: null
+                }
             });
         }
     }

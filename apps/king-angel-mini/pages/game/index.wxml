@@ -1,0 +1,20 @@
+<view class="page stack">
+  <view wx:if="{{game}}" class="panel header">
+    <view class="eyebrow">CURRENT GAME</view>
+    <view class="title">{{game.game.name}}</view>
+    <view class="muted">{{game.game.theme || '这一轮还没有设置主题'}}</view>
+    <stage-progress currentStage="{{game.game.currentStage}}" />
+  </view>
+
+  <task-card wx:if="{{task}}" task="{{task}}" bind:action="openTask" />
+
+  <view class="grid">
+    <button class="button ghost" bindtap="openMembers">游戏成员</button>
+    <button class="button ghost" bindtap="openReveal">揭晓结果</button>
+  </view>
+
+  <button wx:if="{{game.me.canManage}}" class="button" bindtap="openAdmin">控场面板</button>
+  <button class="button ghost" open-type="share">邀请朋友</button>
+
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+</view>

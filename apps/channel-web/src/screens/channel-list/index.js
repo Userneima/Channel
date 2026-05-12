@@ -81,7 +81,7 @@ const renderDirectory = (root, channels) => {
             <section class="channel-directory__section">
                 <div class="channel-directory__section-head" id="real-channels">
                     <h2>真实频道</h2>
-                    <p>这里连接真实数据和真实加入流程。先试玩，再决定是否进入正式回合。</p>
+                    <p>这里连接真实数据。先试玩，再决定是否进入正式回合。</p>
                 </div>
                 <div class="channel-directory__grid">
                 ${channels.length

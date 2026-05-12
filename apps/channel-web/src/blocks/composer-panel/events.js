@@ -93,6 +93,7 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
 
         if (target.matches("[data-ref='draft-input']")) {
             actions.setComposerField({ draftText: target.value });
+            void actions.refreshAnonymousTextPreview();
         }
     });
 
@@ -112,8 +113,8 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
             return;
         }
 
-        if (target.matches("[data-ref='auto-rotate']")) {
-            actions.setComposerField({ autoRotate: target.checked });
+        if (target.matches("[data-ref='anonymous-text-rewrite']")) {
+            void actions.setAnonymousTextRewrite(target.checked);
             return;
         }
 

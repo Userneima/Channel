@@ -99,6 +99,7 @@ export const mountChannelPage = ({ root, store, actions }) => {
         actions.closeOverlay("notification-center");
         actions.closeOverlay("member-list");
         actions.closeOverlay("channel-intelligence");
+        actions.closeOverlay("round-management");
         actions.closeOverlay("channel-menu");
         actions.closeOverlay("channel-settings");
         actions.closeOverlay("identity");

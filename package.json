@@ -9,10 +9,12 @@
     "dev:web": "vite --host localhost --port 43173",
     "build:web": "vite build",
     "preview:web": "vite preview --host localhost --port 43173",
+    "test:core": "vitest run --config packages/king-angel-core/vitest.config.js",
     "test:web": "vitest run --environment jsdom",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "check": "npm run test:web && npm run build:web"
+    "audit:context": "node scripts/context-audit.mjs",
+    "check": "npm run test:core && npm run test:web && npm run build:web"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.3"
