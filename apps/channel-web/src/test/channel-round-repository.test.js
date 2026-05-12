@@ -75,4 +75,105 @@ describe("channel round repository", () => {
             }
         }));
     });
+
+    it("filters out removed users from current round member statuses", async () => {
+        const from = vi.fn((table) => {
+            if (table === "channel_round_members") {
+                return {
+                    select: vi.fn(() => ({
+                        eq: vi.fn(() => ({
+                            order: vi.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        identity_id: "identity-1",
+                                        user_id: "user-1",
+                                        display_name_snapshot: "Yuchao",
+                                        avatar_snapshot: "avatar-1",
+                                        role_snapshot: "owner",
+                                        claim_post_id: null,
+                                        claim_selected_at: null,
+                                        guess_target_name_snapshot: "",
+                                        guess_target_avatar_snapshot: "",
+                                        guess_selected_at: null
+                                    },
+                                    {
+                                        identity_id: "identity-deleted",
+                                        user_id: "user-deleted",
+                                        display_name_snapshot: "测试 1",
+                                        avatar_snapshot: "avatar-2",
+                                        role_snapshot: "member",
+                                        claim_post_id: null,
+                                        claim_selected_at: null,
+                                        guess_target_name_snapshot: "",
+                                        guess_target_avatar_snapshot: "",
+                                        guess_selected_at: null
+                                    }
+                                ],
+                                error: null
+                            })
+                        }))
+                    }))
+                };
+            }
+
+            if (table === "identities") {
+                return {
+                    select: vi.fn(() => ({
+                        eq: vi.fn(() => Promise.resolve({
+                            data: [
+                                { id: "identity-1", user_id: "user-1" }
+                            ],
+                            error: null
+                        }))
+                    }))
+                };
+            }
+
+            if (table === "channel_rounds") {
+                return {
+                    select: vi.fn(() => ({
+                        eq: vi.fn(() => ({
+                            maybeSingle: vi.fn().mockResolvedValue({
+                                data: {
+                                    reveal_map: {}
+                                },
+                                error: null
+                            })
+                        }))
+                    }))
+                };
+            }
+
+            throw new Error(`Unexpected table ${table}`);
+        });
+
+        const repository = createChannelRoundRepository({
+            getSupabaseClient: () => ({
+                from
+            }),
+            ensureLoadedChannel: () => ({
+                id: "channel-1",
+                slug: "channel",
+                currentRoundId: "round-1"
+            }),
+            fetchPosts: vi.fn(),
+            fetchRoundPosts: vi.fn(async () => []),
+            isSchemaCompatibilityError: vi.fn(() => false),
+            normalizeClaimSelection: vi.fn(),
+            syncChannelCaches: vi.fn(async (channel) => channel),
+            normalizeChannel: vi.fn((channel) => channel),
+            channelSelectFields: "id",
+            identitySelectFields: "id",
+            legacyIdentitySelectFields: "id",
+            roundSelectFields: "reveal_map",
+            roundMemberSelectFields: "identity_id,user_id,display_name_snapshot,avatar_snapshot,role_snapshot",
+            defaultChannelLogo: "",
+            defaultChannelBackground: ""
+        });
+
+        const items = await repository.listRoundMemberStatuses();
+
+        expect(items).toHaveLength(1);
+        expect(items[0].name).toBe("Yuchao");
+    });
 });

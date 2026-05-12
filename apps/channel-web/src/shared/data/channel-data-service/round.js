@@ -283,6 +283,24 @@ export const createRoundApi = (context) => ({
 
         return this.getArchivedRoundDetail(trimmedRoundId);
     },
+    async deleteArchivedRound(roundId) {
+        const trimmedRoundId = String(roundId || "").trim();
+        if (!trimmedRoundId) {
+            throw new Error("归档还没有初始化完成。");
+        }
+
+        const client = context.getSupabaseClient();
+        const { error } = await client.rpc("delete_archived_round", {
+            target_round_id: trimmedRoundId
+        });
+
+        if (error) {
+            if (context.isSchemaCompatibilityError(error)) {
+                throw new Error("归档删除函数还没同步到数据库，请先应用最新 migration。");
+            }
+            throw error;
+        }
+    },
     async updateChannelRoundState(input) {
         return context.roundRepository.updateChannelRoundState(input);
     },

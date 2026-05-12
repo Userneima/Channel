@@ -131,7 +131,10 @@ export const selectFeedListVM = (state) => {
     }
 
     if (isGuessBoard) {
-        const candidates = buildChannelMemberOptions(state, { excludeCurrent: true })
+        const candidates = buildChannelMemberOptions(state, {
+            excludeCurrent: true,
+            onlyWishParticipants: true
+        })
             .map((member) => ({
                 ...member,
                 isSelected: selectedGuessTarget?.name === member.name,

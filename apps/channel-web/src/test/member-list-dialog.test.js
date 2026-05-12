@@ -118,6 +118,99 @@ describe("member list dialog", () => {
         root.remove();
     });
 
+    it("deduplicates legacy duplicate identities for the same user in manage mode", () => {
+        const root = document.createElement("div");
+        document.body.append(root);
+
+        const store = createStore();
+        store.dispatch({
+            type: "membership/set-state",
+            payload: {
+                status: "approved",
+                joinRequest: null,
+                reviewItems: [],
+                directoryItems: [
+                    { identityId: "identity-owner", userId: "user-1", name: "Yuchao", avatar: "owner-avatar", role: "owner", createdAt: "2026-05-10T10:00:00.000Z" },
+                    { identityId: "identity-member", userId: "user-1", name: "章鱼烧", avatar: "member-avatar", role: "member", createdAt: "2026-05-11T10:00:00.000Z" },
+                    { identityId: "identity-2", userId: "user-2", name: "测试账号", avatar: "test-avatar", role: "member", createdAt: "2026-05-11T11:00:00.000Z" }
+                ]
+            }
+        });
+        store.dispatch({
+            type: "runtime/member-ready",
+            payload: {
+                channel: { id: "channel-1", slug: "channel", name: "频道" },
+                realIdentity: { id: "identity-owner", name: "Yuchao", avatar: "owner-avatar", meta: "当前真实身份", role: "owner" },
+                anonymousProfiles: [{ id: "alias-1", key: "slot-baiyu", name: "白榆", avatar: "alias" }],
+                activeAliasKey: "slot-baiyu"
+            }
+        });
+        store.dispatch({
+            type: "member-list/open",
+            payload: { mode: "manage" }
+        });
+
+        const block = mountMemberListDialogBlock({ root, store, actions: createDialogActions() });
+        block.render();
+
+        const items = [...root.querySelectorAll(".member-list-dialog__item")];
+        expect(items).toHaveLength(2);
+        expect(root.textContent).toContain("Yuchao");
+        expect(root.textContent).not.toContain("章鱼烧成员");
+        expect(root.textContent).toContain("2 位当前社区成员");
+
+        root.remove();
+    });
+
+    it("falls back to the directory role when runtime role is stale", () => {
+        const root = document.createElement("div");
+        document.body.append(root);
+
+        const store = createStore();
+        store.dispatch({
+            type: "auth/set-state",
+            payload: {
+                status: "authenticated",
+                user: { id: "user-1", email: "owner@example.com" },
+                isAnonymous: false
+            }
+        });
+        store.dispatch({
+            type: "membership/set-state",
+            payload: {
+                status: "approved",
+                joinRequest: null,
+                reviewItems: [],
+                directoryItems: [
+                    { identityId: "identity-owner", userId: "user-1", name: "Yuchao", avatar: "owner-avatar", role: "owner", createdAt: "2026-05-10T10:00:00.000Z" },
+                    { identityId: "identity-member", userId: "user-1", name: "章鱼烧", avatar: "member-avatar", role: "member", createdAt: "2026-05-11T10:00:00.000Z" },
+                    { identityId: "identity-2", userId: "user-2", name: "测试账号", avatar: "test-avatar", role: "member", createdAt: "2026-05-11T11:00:00.000Z" }
+                ]
+            }
+        });
+        store.dispatch({
+            type: "runtime/member-ready",
+            payload: {
+                channel: { id: "channel-1", slug: "channel", name: "频道" },
+                realIdentity: { id: "identity-member", name: "章鱼烧", avatar: "member-avatar", meta: "当前真实身份", role: "member" },
+                anonymousProfiles: [{ id: "alias-1", key: "slot-baiyu", name: "白榆", avatar: "alias" }],
+                activeAliasKey: "slot-baiyu"
+            }
+        });
+        store.dispatch({
+            type: "member-list/open",
+            payload: { mode: "manage" }
+        });
+
+        const block = mountMemberListDialogBlock({ root, store, actions: createDialogActions() });
+        block.render();
+
+        expect(root.textContent).toContain("移除成员");
+        expect(root.textContent).toContain("创建者");
+
+        root.remove();
+    });
+
     it("marks the dialog hidden when closed", () => {
         const root = document.createElement("div");
         document.body.append(root);

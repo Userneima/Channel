@@ -1,5 +1,5 @@
 import { gameBoardStages, getNextRoundStage } from "../../entities/channel/config.js";
-import { getChannelActionErrorMessage } from "../../shared/lib/helpers.js";
+import { downloadJsonFile, getChannelActionErrorMessage } from "../../shared/lib/helpers.js";
 import {
     attachGuessToRevealMap,
     attachWishPreviewToRevealMap,
@@ -903,6 +903,99 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
                 showToast({
                     tone: "error",
                     message: getChannelActionErrorMessage("rename_round_archive", error)
+                });
+            }
+        },
+        async exportArchivedRound(roundId = store.getState().overlayState.channelIntelligence.selectedArchiveId) {
+            const normalizedRoundId = String(roundId || "").trim();
+            if (!normalizedRoundId || typeof dataService.getArchivedRoundDetail !== "function") {
+                return;
+            }
+
+            try {
+                const state = store.getState();
+                const currentDetail = state.roundState.archiveViewerDetail?.id === normalizedRoundId
+                    ? state.roundState.archiveViewerDetail
+                    : null;
+                const detail = currentDetail || await dataService.getArchivedRoundDetail(normalizedRoundId);
+                if (!detail) {
+                    throw new Error("当前归档详情还没有加载完成。");
+                }
+
+                const channel = state.runtimeState.channel || {};
+                const archiveTitle = String(detail.title || detail.theme || detail.defaultTitle || "archive").trim() || "archive";
+                const safeTitle = archiveTitle
+                    .replace(/[\\/:*?"<>|]+/g, "-")
+                    .replace(/\s+/g, "-")
+                    .slice(0, 48)
+                    .replace(/^-+|-+$/g, "") || "archive";
+                const completedDate = String(detail.completedAt || detail.createdAt || "").slice(0, 10) || "unknown-date";
+
+                downloadJsonFile(
+                    `${String(channel.slug || "channel").trim() || "channel"}-${completedDate}-${safeTitle}.json`,
+                    {
+                        exportedAt: new Date().toISOString(),
+                        channel: {
+                            id: channel.id || null,
+                            slug: channel.slug || "",
+                            name: channel.name || ""
+                        },
+                        archive: detail
+                    }
+                );
+                showToast({
+                    tone: "success",
+                    message: "往期回合备份已导出。"
+                });
+            } catch (error) {
+                showToast({
+                    tone: "error",
+                    message: getChannelActionErrorMessage("export_round_archive", error)
+                });
+            }
+        },
+        async deleteArchivedRound(roundId = store.getState().overlayState.channelIntelligence.selectedArchiveId) {
+            const normalizedRoundId = String(roundId || "").trim();
+            if (!normalizedRoundId || typeof dataService.deleteArchivedRound !== "function") {
+                return;
+            }
+
+            const archive = (store.getState().roundState.archives || []).find((item) => item.id === normalizedRoundId) || null;
+            const confirmed = window.confirm(
+                `删除“${archive?.title || archive?.theme || archive?.defaultTitle || "这条往期回合"}”后，记录不能恢复。确认删除吗？`
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                await dataService.deleteArchivedRound(normalizedRoundId);
+                if (store.getState().roundState.archiveViewerRoundId === normalizedRoundId) {
+                    store.dispatch({
+                        type: "round/set-archive-viewer",
+                        payload: {
+                            roundId: null,
+                            detail: null
+                        }
+                    });
+                    await loadFeed(store.getState().feedState.activeBoard);
+                }
+                store.dispatch({
+                    type: "channel-intelligence/set-field",
+                    payload: {
+                        archiveDetailOpen: false,
+                        selectedArchiveId: null
+                    }
+                });
+                await actions.refreshRoundArchives({ silent: true });
+                showToast({
+                    tone: "success",
+                    message: "往期回合记录已删除。"
+                });
+            } catch (error) {
+                showToast({
+                    tone: "error",
+                    message: getChannelActionErrorMessage("delete_round_archive", error)
                 });
             }
         }

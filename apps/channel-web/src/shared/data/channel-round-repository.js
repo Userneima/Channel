@@ -218,6 +218,25 @@ export const createChannelRoundRepository = ({
             throw response.error;
         }
 
+        const activeIdentityResponse = await client
+            .from("identities")
+            .select("id, user_id")
+            .eq("channel_id", channel.id);
+
+        if (activeIdentityResponse.error) {
+            throw activeIdentityResponse.error;
+        }
+
+        const activeIdentityIds = new Set((activeIdentityResponse.data || []).map((row) => row.id).filter(Boolean));
+        const activeUserIds = new Set((activeIdentityResponse.data || []).map((row) => row.user_id).filter(Boolean));
+        const activeRows = (response.data || []).filter((row) => {
+            if (useLegacyIdentityFields) {
+                return activeUserIds.has(row.user_id);
+            }
+
+            return activeIdentityIds.has(row.identity_id) || activeUserIds.has(row.user_id);
+        });
+
         const [wishPosts, deliveryPosts] = await Promise.all([
             typeof fetchRoundPosts === "function" ? fetchRoundPosts(currentRoundId, "wish") : fetchPosts("wish"),
             typeof fetchRoundPosts === "function" ? fetchRoundPosts(currentRoundId, "delivery") : fetchPosts("delivery")
@@ -264,7 +283,7 @@ export const createChannelRoundRepository = ({
             || channel.currentRevealMap
         );
 
-        return (response.data || []).map((row) => {
+        return activeRows.map((row) => {
             const userId = useLegacyIdentityFields ? row.user_id : row.user_id;
             const name = useLegacyIdentityFields ? String(row.display_name || "频道成员").trim() : String(row.display_name_snapshot || "频道成员").trim();
             const avatar = useLegacyIdentityFields ? String(row.avatar_url || "").trim() : String(row.avatar_snapshot || "").trim();

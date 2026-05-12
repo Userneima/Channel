@@ -358,15 +358,23 @@ export const buildRoundMemberOptions = ({
 };
 
 export const buildChannelMemberOptions = (state, options = {}) => {
-    const { excludeCurrent = false } = options;
+    const {
+        excludeCurrent = false,
+        onlyWishParticipants = false
+    } = options;
     const includeFallbackMembers = state.runtimeState.channel?.slug === "demo"
         || state.membershipState.status !== "approved";
+    const memberStatuses = onlyWishParticipants
+        ? (state.roundState.memberStatuses || []).filter((member) => member?.wishSubmitted)
+        : state.roundState.memberStatuses;
     const members = buildRoundMemberOptions({
         realIdentity: state.runtimeState.realIdentity,
-        memberStatuses: state.roundState.memberStatuses,
+        memberStatuses,
         feedItems: state.feedState.items,
         revealMap: state.roundState.revealMap,
-        mentionOptions: includeFallbackMembers ? mentionMembers : []
+        mentionOptions: onlyWishParticipants
+            ? []
+            : (includeFallbackMembers ? mentionMembers : [])
     });
 
     if (!excludeCurrent) {

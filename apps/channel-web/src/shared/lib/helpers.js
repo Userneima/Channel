@@ -256,6 +256,60 @@ export const copyText = async (text) => {
     await navigator.clipboard.writeText(text);
 };
 
+const channelRolePriority = {
+    owner: 0,
+    admin: 1,
+    member: 2
+};
+
+export const getChannelRolePriority = (role) => channelRolePriority[String(role || "member").trim()] ?? 99;
+
+export const resolveHighestChannelRole = ({
+    members = [],
+    currentUserId = "",
+    currentIdentityId = "",
+    fallbackRole = "member"
+} = {}) => {
+    const normalizedUserId = String(currentUserId || "").trim();
+    const normalizedIdentityId = String(currentIdentityId || "").trim();
+    let bestRole = String(fallbackRole || "member").trim() || "member";
+    let bestPriority = getChannelRolePriority(bestRole);
+
+    (members || []).forEach((member) => {
+        const memberUserId = String(member?.userId || "").trim();
+        const memberIdentityId = String(member?.identityId || "").trim();
+        const matchesCurrent = (normalizedUserId && memberUserId === normalizedUserId)
+            || (normalizedIdentityId && memberIdentityId === normalizedIdentityId);
+        if (!matchesCurrent) {
+            return;
+        }
+
+        const role = String(member?.role || "member").trim() || "member";
+        const priority = getChannelRolePriority(role);
+        if (priority < bestPriority) {
+            bestRole = role;
+            bestPriority = priority;
+        }
+    });
+
+    return bestRole;
+};
+
+export const downloadJsonFile = (filename, value) => {
+    const blob = new Blob(
+        [JSON.stringify(value, null, 2)],
+        { type: "application/json;charset=utf-8" }
+    );
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(blobUrl);
+};
+
 export const delay = (duration) => new Promise((resolve) => {
     window.setTimeout(resolve, duration);
 });
@@ -272,6 +326,42 @@ export const getChannelActionErrorMessage = (action, error) => {
     if (code === "42501") {
         if (action === "init_runtime") {
             return "频道权限初始化没有完成，请稍后重试。";
+        }
+        if (action === "remove_channel_member") {
+            if (lowerMessage.includes("only channel admins can remove members")) {
+                return "您为普通成员，暂无踢出成员的权限。";
+            }
+            if (lowerMessage.includes("you cannot remove the active identity")) {
+                return "当前这条身份正在承载你的频道权限，不能直接移除。";
+            }
+            if (lowerMessage.includes("owner cannot be removed")) {
+                return "创建者身份不能被移除。";
+            }
+            if (lowerMessage.includes("admins can only remove regular members")) {
+                return "您当前是管理员，只能移除普通成员。";
+            }
+            if (lowerMessage.includes("owners can only remove their own duplicate lower-privilege identities")) {
+                return "你只能清理自己名下重复的低权限身份，不能移除当前主身份。";
+            }
+            if (lowerMessage.includes("admins can only remove their own duplicate member identity")) {
+                return "管理员只能清理自己名下重复的普通成员身份。";
+            }
+        }
+        if (action === "set_channel_member_role") {
+            if (lowerMessage.includes("only the channel owner can edit member roles")) {
+                return "只有创建者可以调整成员角色。";
+            }
+            if (lowerMessage.includes("owner role cannot be changed")) {
+                return "创建者身份不能降级。";
+            }
+            if (lowerMessage.includes("owner cannot remove their own management access")) {
+                return "不能移除自己当前的管理权限。";
+            }
+        }
+        if (action === "delete_round_archive") {
+            if (lowerMessage.includes("only channel admins can delete archives")) {
+                return "您为普通成员，暂无删除往期回合记录的权限。";
+            }
         }
         return "当前操作被频道权限规则拦截，请刷新后重试。";
     }
@@ -362,6 +452,8 @@ export const getChannelActionErrorMessage = (action, error) => {
         archive_round: "回合归档失败，请稍后重试。",
         restore_round_archive: "恢复归档失败，请稍后重试。",
         rename_round_archive: "归档标题保存失败，请稍后重试。",
+        export_round_archive: "归档导出失败，请稍后重试。",
+        delete_round_archive: "归档记录删除失败，请稍后重试。",
         save_round_archive: "本轮已经结束，但归档保存失败，请稍后重试。",
         load_feed: "频道内容加载失败，请刷新或重试。",
         load_comments: "评论加载失败，请稍后重试。",

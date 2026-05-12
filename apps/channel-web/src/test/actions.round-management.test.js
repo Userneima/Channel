@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createActionsHarness, seedApprovedViewer } from "../../test-support/actions-fixture.js";
 
 describe("channel feature actions: round management", () => {
@@ -167,5 +167,96 @@ describe("channel feature actions: round management", () => {
         expect(store.getState().roundState.claimSelection).toBeNull();
         expect(store.getState().feedState.activeBoard).toBe("all");
         expect(store.getState().overlayState.toast.message).toBe("本轮已归档，新一轮已开始。");
+    });
+
+    it("deletes the selected archived round and closes the detail dialog", async () => {
+        const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+        store.dispatch({
+            type: "round/set-archives",
+            payload: {
+                items: [{
+                    id: "archive-1",
+                    title: "玄学测试",
+                    theme: "玄学测试",
+                    completedAt: "2026-04-23T12:00:00.000Z",
+                    stats: {
+                        totalMembers: 3,
+                        guessDone: 2,
+                        pairCount: 1
+                    },
+                    revealPairs: []
+                }]
+            }
+        });
+        store.dispatch({
+            type: "channel-intelligence/set-field",
+            payload: {
+                selectedArchiveId: "archive-1",
+                archiveDetailOpen: true
+            }
+        });
+        dataService.deleteArchivedRound.mockResolvedValue(undefined);
+        dataService.listArchivedRounds.mockResolvedValue([]);
+
+        await actions.deleteArchivedRound();
+
+        expect(dataService.deleteArchivedRound).toHaveBeenCalledWith("archive-1");
+        expect(store.getState().overlayState.channelIntelligence.archiveDetailOpen).toBe(false);
+        expect(store.getState().overlayState.channelIntelligence.selectedArchiveId).toBeNull();
+        expect(store.getState().roundState.archives).toHaveLength(0);
+        expect(store.getState().overlayState.toast.message).toBe("往期回合记录已删除。");
+
+        confirmSpy.mockRestore();
+    });
+
+    it("exports the selected archived round as a backup file", async () => {
+        const originalCreateObjectUrl = URL.createObjectURL;
+        const originalRevokeObjectUrl = URL.revokeObjectURL;
+        URL.createObjectURL = vi.fn(() => "blob:archive-backup");
+        URL.revokeObjectURL = vi.fn();
+        const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+        store.dispatch({
+            type: "runtime/update-channel",
+            payload: {
+                channel: {
+                    id: "channel-1",
+                    slug: "channel",
+                    name: "频道"
+                }
+            }
+        });
+        store.dispatch({
+            type: "channel-intelligence/set-field",
+            payload: {
+                selectedArchiveId: "archive-1"
+            }
+        });
+        dataService.getArchivedRoundDetail.mockResolvedValue({
+            id: "archive-1",
+            title: "玄学测试",
+            theme: "玄学测试",
+            completedAt: "2026-04-23T12:00:00.000Z",
+            stats: {
+                totalMembers: 3,
+                guessDone: 2,
+                pairCount: 1
+            },
+            revealPairs: [],
+            posts: []
+        });
+
+        await actions.exportArchivedRound();
+
+        expect(dataService.getArchivedRoundDetail).toHaveBeenCalledWith("archive-1");
+        expect(clickSpy).toHaveBeenCalled();
+        expect(URL.createObjectURL).toHaveBeenCalled();
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:archive-backup");
+        expect(store.getState().overlayState.toast.message).toBe("往期回合备份已导出。");
+
+        clickSpy.mockRestore();
+        URL.createObjectURL = originalCreateObjectUrl;
+        URL.revokeObjectURL = originalRevokeObjectUrl;
     });
 });

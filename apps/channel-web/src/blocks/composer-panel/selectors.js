@@ -111,7 +111,10 @@ export const selectComposerPanelVM = (state) => {
         primaryAction: ""
     };
     const availableMentionMembers = stage.value === "guess"
-        ? buildChannelMemberOptions(state, { excludeCurrent: true })
+        ? buildChannelMemberOptions(state, {
+            excludeCurrent: true,
+            onlyWishParticipants: true
+        })
         : buildChannelMemberOptions(state);
     const revealPairs = buildRevealPairs(state.roundState.revealMap);
     const revealResult = buildRevealResult({

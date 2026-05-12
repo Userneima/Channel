@@ -126,7 +126,7 @@ const buildArchivePosts = (archive) => {
     `;
 };
 
-const buildArchiveDialog = (vm) => vm.archiveDetailOpen && vm.archiveDialogArchive ? `
+export const channelIntelligenceArchiveDialogTemplate = (vm) => vm.archiveDetailOpen && vm.archiveDialogArchive ? `
     <div class="channel-intelligence-dialog is-open" data-channel-intelligence-dialog="archive-detail" role="dialog" aria-modal="true" aria-label="往期回合详情">
         <button class="channel-intelligence-dialog__backdrop" data-channel-intelligence-action="close-archive-detail" type="button" aria-label="关闭归档详情"></button>
         <article class="channel-intelligence-dialog__panel">
@@ -154,13 +154,19 @@ const buildArchiveDialog = (vm) => vm.archiveDetailOpen && vm.archiveDialogArchi
                     <div class="channel-intelligence__archive-hint">${escapeHtml(vm.selectedArchiveViewOnlyLabel)}</div>
                 ` : ""}
                 <div class="channel-intelligence__archive-actions">
-                    <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="rename-archive" type="button">改标题</button>
+                    ${vm.canManageRound ? `
+                        <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="rename-archive" type="button">改标题</button>
+                    ` : ""}
                     ${vm.archiveDialogArchive.isRestorable ? `
                         <button class="channel-intelligence__action-button" data-channel-intelligence-action="restore-archive" type="button">恢复为当前</button>
                     ` : ""}
+                    <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="export-archive" type="button">导出备份</button>
                     <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="view-archive-board" type="button">按板块查看</button>
                     ${vm.archiveViewerActive ? `
                         <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="exit-archive-viewer" type="button">返回当前回合</button>
+                    ` : ""}
+                    ${vm.canManageRound ? `
+                        <button class="channel-intelligence__action-button is-danger" data-channel-intelligence-action="delete-archive" type="button">删除记录</button>
                     ` : ""}
                 </div>
                 <section class="channel-intelligence__section">
@@ -251,6 +257,5 @@ export const channelIntelligenceTemplate = (vm) => `
             </section>
             ${buildArchives(vm)}
         </header>
-        ${buildArchiveDialog(vm)}
     </section>
 `;

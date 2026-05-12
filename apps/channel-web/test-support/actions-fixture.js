@@ -43,6 +43,7 @@ export const createMockDataService = () => ({
     archiveCurrentRound: vi.fn(),
     restoreArchivedRound: vi.fn(),
     renameArchivedRound: vi.fn(),
+    deleteArchivedRound: vi.fn(),
     listRoundArchives: vi.fn(),
     saveRoundArchive: vi.fn(),
     listRoundMemberStatuses: vi.fn(),

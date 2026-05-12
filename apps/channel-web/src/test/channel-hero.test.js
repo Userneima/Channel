@@ -67,13 +67,32 @@ describe("channel hero member entry", () => {
             type: "round/set-member-statuses",
             payload: {
                 items: [
-                    { identityId: "identity-1", name: "章鱼烧", avatar: "avatar" },
-                    { identityId: "identity-2", name: "测试账号", avatar: "test-avatar" }
+                    { identityId: "identity-1", userId: "user-1", name: "章鱼烧", avatar: "avatar" },
+                    { identityId: "identity-2", userId: "user-2", name: "测试账号", avatar: "test-avatar" }
                 ]
             }
         });
 
         const vm = selectChannelHeroVM(store.getState());
         expect(vm.memberCountLabel).toBe("2 成员");
+    });
+
+    it("deduplicates repeated identities from the same user in the member count", () => {
+        const store = createStore();
+        store.dispatch({
+            type: "membership/set-state",
+            payload: {
+                status: "approved",
+                joinRequest: null,
+                reviewItems: [],
+                directoryItems: [
+                    { identityId: "identity-owner", userId: "user-1", name: "Yuchao", avatar: "owner-avatar", role: "owner" },
+                    { identityId: "identity-member", userId: "user-1", name: "章鱼烧", avatar: "member-avatar", role: "member" }
+                ]
+            }
+        });
+
+        const vm = selectChannelHeroVM(store.getState());
+        expect(vm.memberCountLabel).toBe("1 成员");
     });
 });

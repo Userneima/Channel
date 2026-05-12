@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createActionsHarness, seedApprovedViewer } from "../../test-support/actions-fixture.js";
+import { approvedRuntime, createActionsHarness, seedApprovedViewer } from "../../test-support/actions-fixture.js";
 
 describe("channel feature actions: overlay/ui", () => {
     let store;
@@ -147,6 +147,37 @@ describe("channel feature actions: overlay/ui", () => {
         expect(state.overlayState.memberList.mode).toBe("manage");
         expect(dataService.listChannelMembers).toHaveBeenCalledWith("channel-1");
         expect(state.membershipState.directoryItems).toHaveLength(2);
+    });
+
+    it("opens member list in manage mode when runtime role is stale but directory shows owner", async () => {
+        seedApprovedViewer(store);
+        store.dispatch({
+            type: "runtime/member-ready",
+            payload: {
+                ...store.getState().runtimeState,
+                channel: approvedRuntime.channel,
+                realIdentity: {
+                    id: "identity-member",
+                    name: "章鱼烧",
+                    avatar: "avatar",
+                    meta: "当前真实身份",
+                    role: "member"
+                },
+                anonymousProfiles: approvedRuntime.anonymousProfiles,
+                activeAliasKey: approvedRuntime.activeAliasKey
+            }
+        });
+        dataService.listChannelMembers.mockResolvedValue([
+            { identityId: "identity-owner", userId: "user-1", name: "Yuchao", avatar: "owner-avatar", role: "owner" },
+            { identityId: "identity-member", userId: "user-1", name: "章鱼烧", avatar: "avatar", role: "member" },
+            { identityId: "identity-2", userId: "user-2", name: "测试账号", avatar: "test-avatar", role: "member" }
+        ]);
+
+        await actions.openMemberList();
+
+        const state = store.getState();
+        expect(state.overlayState.memberList.open).toBe(true);
+        expect(state.overlayState.memberList.mode).toBe("manage");
     });
 
     it("resets pending removal state when member list closes", () => {

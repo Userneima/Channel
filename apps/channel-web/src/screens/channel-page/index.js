@@ -36,6 +36,7 @@ export const mountChannelPage = ({ root, store, actions }) => {
         memberListDialog: root.querySelector('[data-screen-slot="member-list-dialog"]'),
         channelMenuDialog: root.querySelector('[data-screen-slot="channel-menu-dialog"]'),
         channelSettingsDialog: root.querySelector('[data-screen-slot="channel-settings-dialog"]'),
+        channelIntelligenceDialog: root.querySelector('[data-screen-slot="channel-intelligence-dialog"]'),
         identityDialog: root.querySelector('[data-screen-slot="identity-dialog"]'),
         authGate: root.querySelector('[data-screen-slot="auth-gate"]'),
         searchDialog: root.querySelector('[data-screen-slot="search-dialog"]'),
@@ -50,7 +51,12 @@ export const mountChannelPage = ({ root, store, actions }) => {
         mountBoardTabsBlock({ root: blockSlots.boardTabs, store, actions }),
         mountJoinRequestPanelBlock({ root: blockSlots.joinRequestPanel, store, actions }),
         mountMembershipReviewPanelBlock({ root: blockSlots.membershipReviewPanel, store, actions }),
-        mountChannelIntelligenceBlock({ root: blockSlots.channelIntelligence, store, actions }),
+        mountChannelIntelligenceBlock({
+            root: blockSlots.channelIntelligence,
+            dialogRoot: blockSlots.channelIntelligenceDialog,
+            store,
+            actions
+        }),
         mountComposerPanelBlock({ root: blockSlots.composerPanel, store, actions }),
         mountFeedListBlock({ root: blockSlots.feedList, store, actions }),
         mountCommentDrawerBlock({ root: blockSlots.commentDrawer, store, actions }),

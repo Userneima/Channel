@@ -1,9 +1,12 @@
 import "./styles.css";
 import { attachChannelIntelligenceEvents } from "./events.js";
 import { selectChannelIntelligenceVM } from "./selectors.js";
-import { channelIntelligenceTemplate } from "./template.js";
+import {
+    channelIntelligenceArchiveDialogTemplate,
+    channelIntelligenceTemplate
+} from "./template.js";
 
-export const mountChannelIntelligenceBlock = ({ root, store, actions }) => {
+export const mountChannelIntelligenceBlock = ({ root, dialogRoot = null, store, actions }) => {
     let refs = null;
     let hasBoundEvents = false;
     let previousVM = null;
@@ -15,7 +18,11 @@ export const mountChannelIntelligenceBlock = ({ root, store, actions }) => {
         };
 
         if (!hasBoundEvents) {
-            attachChannelIntelligenceEvents({ root, actions });
+            attachChannelIntelligenceEvents({
+                root,
+                roots: [root, dialogRoot].filter(Boolean),
+                actions
+            });
             root.addEventListener("compositionstart", (event) => {
                 if (event.target.closest("[data-channel-intelligence-ref='theme-input']")) {
                     isComposing = true;
@@ -87,6 +94,9 @@ export const mountChannelIntelligenceBlock = ({ root, store, actions }) => {
 
             if (shouldRerender(vm)) {
                 root.innerHTML = channelIntelligenceTemplate(vm);
+                if (dialogRoot) {
+                    dialogRoot.innerHTML = channelIntelligenceArchiveDialogTemplate(vm);
+                }
                 ensureRefs();
 
                 if (shouldRefocus && refs?.themeInput && vm.themeEditorOpen) {
@@ -96,6 +106,10 @@ export const mountChannelIntelligenceBlock = ({ root, store, actions }) => {
 
                 previousVM = vm;
                 return;
+            }
+
+            if (dialogRoot && dialogRoot.innerHTML !== channelIntelligenceArchiveDialogTemplate(vm)) {
+                dialogRoot.innerHTML = channelIntelligenceArchiveDialogTemplate(vm);
             }
 
             if (refs?.themeInput && document.activeElement !== refs.themeInput && !isComposing && refs.themeInput.value !== vm.draftTheme) {

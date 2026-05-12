@@ -30,6 +30,7 @@ export const channelPageTemplate = () => `
         <div data-screen-slot="member-list-dialog"></div>
         <div data-screen-slot="channel-menu-dialog"></div>
         <div data-screen-slot="channel-settings-dialog"></div>
+        <div data-screen-slot="channel-intelligence-dialog"></div>
         <div data-screen-slot="identity-dialog"></div>
         <div data-screen-slot="auth-gate"></div>
         <div data-screen-slot="search-dialog"></div>

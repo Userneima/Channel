@@ -1,4 +1,5 @@
 import { buildChannelMemberOptions } from "../../features/round/model.js";
+import { getChannelRolePriority, resolveHighestChannelRole } from "../../shared/lib/helpers.js";
 
 const roleLabelByValue = {
     owner: "创建者",
@@ -7,6 +8,39 @@ const roleLabelByValue = {
 };
 
 const getRoleLabel = (role) => roleLabelByValue[String(role || "member").trim()] || "成员";
+
+const dedupeDirectoryMembers = (members = []) => {
+    const memberByKey = new Map();
+
+    members.forEach((member, index) => {
+        const userId = String(member?.userId || "").trim();
+        const identityId = String(member?.identityId || "").trim();
+        const key = userId || identityId || `member-${index}`;
+        const current = memberByKey.get(key);
+
+        if (!current) {
+            memberByKey.set(key, member);
+            return;
+        }
+
+        const nextPriority = getChannelRolePriority(member?.role);
+        const currentPriority = getChannelRolePriority(current?.role);
+        if (nextPriority < currentPriority) {
+            memberByKey.set(key, member);
+            return;
+        }
+
+        if (nextPriority === currentPriority) {
+            const nextCreatedAt = Date.parse(member?.createdAt || 0);
+            const currentCreatedAt = Date.parse(current?.createdAt || 0);
+            if (nextCreatedAt > currentCreatedAt) {
+                memberByKey.set(key, member);
+            }
+        }
+    });
+
+    return [...memberByKey.values()];
+};
 
 const buildReadonlyMembers = (state) => {
     const currentIdentityId = state.runtimeState.realIdentity.id;
@@ -33,13 +67,18 @@ const buildReadonlyMembers = (state) => {
 };
 
 const buildManageMembers = (state) => {
-    const currentRole = state.runtimeState.realIdentity.role;
+    const currentRole = resolveHighestChannelRole({
+        members: state.membershipState.directoryItems || [],
+        currentUserId: state.authState.user?.id || "",
+        currentIdentityId: state.runtimeState.realIdentity.id,
+        fallbackRole: state.runtimeState.realIdentity.role
+    });
     const currentIdentityId = state.runtimeState.realIdentity.id;
     const pendingRemoveIdentityId = state.overlayState.memberList.pendingRemoveIdentityId;
     const activeMemberId = state.membershipState.activeMemberId;
     const actionsLocked = state.membershipState.mutationStatus === "submitting";
 
-    return (state.membershipState.directoryItems || []).map((member) => {
+    return dedupeDirectoryMembers(state.membershipState.directoryItems || []).map((member) => {
         const role = String(member.role || "member").trim() || "member";
         const isCurrent = Boolean(member.identityId) && member.identityId === currentIdentityId;
         const canPromote = currentRole === "owner" && role === "member" && !isCurrent;
@@ -63,9 +102,15 @@ const buildManageMembers = (state) => {
 };
 
 export const selectMemberListDialogVM = (state) => {
+    const effectiveCurrentRole = resolveHighestChannelRole({
+        members: state.membershipState.directoryItems || [],
+        currentUserId: state.authState.user?.id || "",
+        currentIdentityId: state.runtimeState.realIdentity.id,
+        fallbackRole: state.runtimeState.realIdentity.role
+    });
     const canManageMembers = state.overlayState.memberList.mode === "manage"
         && state.membershipState.status === "approved"
-        && ["owner", "admin"].includes(state.runtimeState.realIdentity.role);
+        && ["owner", "admin"].includes(effectiveCurrentRole);
     const members = canManageMembers ? buildManageMembers(state) : buildReadonlyMembers(state);
 
     return {

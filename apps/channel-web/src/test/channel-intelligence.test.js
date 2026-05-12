@@ -23,13 +23,17 @@ const createActions = () => ({
     viewSelectedArchiveInBoard: vi.fn(),
     restoreArchivedRound: vi.fn(),
     renameArchivedRound: vi.fn(),
+    exportArchivedRound: vi.fn(),
+    deleteArchivedRound: vi.fn(),
     exitArchiveViewer: vi.fn()
 });
 
 describe("channel intelligence block", () => {
     it("preserves theme input focus across rerenders", () => {
         const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
         document.body.append(root);
+        document.body.append(dialogRoot);
         const store = createStore();
         const actions = createActions();
 
@@ -41,7 +45,7 @@ describe("channel intelligence block", () => {
             }
         });
 
-        const block = mountChannelIntelligenceBlock({ root, store, actions });
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
 
         const themeInput = root.querySelector("[data-channel-intelligence-ref='theme-input']");
@@ -62,15 +66,18 @@ describe("channel intelligence block", () => {
         expect(nextThemeInput.selectionEnd).toBe(2);
 
         root.remove();
+        dialogRoot.remove();
     });
 
     it("renders the richer round panel content in the sidebar", () => {
         const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
         document.body.append(root);
+        document.body.append(dialogRoot);
         const store = createStore();
         const actions = createActions();
 
-        const block = mountChannelIntelligenceBlock({ root, store, actions });
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
 
         expect(root.textContent).toContain("本周回合");
@@ -82,11 +89,14 @@ describe("channel intelligence block", () => {
         expect(root.textContent).not.toContain("进入回合管理");
 
         root.remove();
+        dialogRoot.remove();
     });
 
     it("shows reveal summary inline when reveal results exist", () => {
         const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
         document.body.append(root);
+        document.body.append(dialogRoot);
         const store = createStore();
         const actions = createActions();
 
@@ -106,18 +116,21 @@ describe("channel intelligence block", () => {
             }
         });
 
-        const block = mountChannelIntelligenceBlock({ root, store, actions });
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
 
         expect(root.textContent).toContain("揭晓结果");
         expect(root.textContent).toContain("已生成 1 对揭晓结果");
 
         root.remove();
+        dialogRoot.remove();
     });
 
     it("renders archived rounds and lets the user switch the selected archive", () => {
         const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
         document.body.append(root);
+        document.body.append(dialogRoot);
         const store = createStore();
         const actions = createActions();
 
@@ -152,7 +165,7 @@ describe("channel intelligence block", () => {
             }
         });
 
-        const block = mountChannelIntelligenceBlock({ root, store, actions });
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
 
         expect(root.textContent).toContain("往期回合");
@@ -171,9 +184,83 @@ describe("channel intelligence block", () => {
         });
         block.render();
 
-        expect(root.querySelector("[data-channel-intelligence-dialog='archive-detail']")).not.toBeNull();
-        expect(root.textContent).toContain("希望有人帮我整理玄学学习目录");
+        expect(dialogRoot.querySelector("[data-channel-intelligence-dialog='archive-detail']")).not.toBeNull();
+        expect(dialogRoot.textContent).toContain("希望有人帮我整理玄学学习目录");
 
         root.remove();
+        dialogRoot.remove();
+    });
+
+    it("wires archive detail actions through the dialog root", () => {
+        const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
+        document.body.append(root);
+        document.body.append(dialogRoot);
+        const store = createStore();
+        const actions = createActions();
+
+        store.dispatch({
+            type: "round/set-archives",
+            payload: {
+                items: [{
+                    id: "archive-1",
+                    title: "玄学测试",
+                    theme: "玄学测试",
+                    completedAt: "2026-04-23T12:00:00.000Z",
+                    stats: {
+                        totalMembers: 3,
+                        guessDone: 2,
+                        pairCount: 1
+                    },
+                    revealPairs: [{
+                        member: { name: "章鱼烧", avatar: "octopus-avatar" },
+                        angel: { name: "海屿", avatar: "haiyu-avatar" },
+                        wishPreview: "希望有人帮我整理玄学学习目录",
+                        guessedAngelName: "海屿"
+                    }]
+                }]
+            }
+        });
+        store.dispatch({
+            type: "channel-intelligence/set-field",
+            payload: {
+                selectedArchiveId: "archive-1",
+                archiveDetailOpen: true
+            }
+        });
+        store.dispatch({
+            type: "round/set-archive-viewer",
+            payload: {
+                roundId: null,
+                detail: {
+                    id: "archive-1",
+                    title: "玄学测试",
+                    completedAt: "2026-04-23T12:00:00.000Z",
+                    stats: {
+                        totalMembers: 3,
+                        guessDone: 2,
+                        pairCount: 1
+                    },
+                    revealPairs: [{
+                        member: { name: "章鱼烧", avatar: "octopus-avatar" },
+                        angel: { name: "海屿", avatar: "haiyu-avatar" },
+                        wishPreview: "希望有人帮我整理玄学学习目录",
+                        guessedAngelName: "海屿"
+                    }],
+                    posts: []
+                }
+            }
+        });
+
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
+        block.render();
+
+        dialogRoot.querySelector("[data-channel-intelligence-action='delete-archive']").click();
+        expect(actions.deleteArchivedRound).toHaveBeenCalled();
+        dialogRoot.querySelector("[data-channel-intelligence-action='export-archive']").click();
+        expect(actions.exportArchivedRound).toHaveBeenCalled();
+
+        root.remove();
+        dialogRoot.remove();
     });
 });

@@ -432,6 +432,17 @@ export const createDemoDataService = () => {
                     : null
             ));
         },
+        async deleteArchivedRound(roundId) {
+            const targetArchiveId = String(roundId || "").trim();
+            if (!targetArchiveId) {
+                throw new Error("归档还没有初始化完成。");
+            }
+
+            posts = posts.filter((post) => {
+                const archive = normalizeRoundArchivePost(post);
+                return archive?.id !== targetArchiveId;
+            });
+        },
         async publishComment(input) {
             const author = normalizeAuthorFromInput(input.author);
             const createdAt = new Date().toISOString();

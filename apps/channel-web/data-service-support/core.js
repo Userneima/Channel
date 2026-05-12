@@ -1284,10 +1284,30 @@ export const createChannelDataServiceContext = () => {
         defaultChannelBackground
     });
 
+    const rolePriorityByValue = {
+        owner: 0,
+        admin: 1,
+        member: 2
+    };
+
+    const getRolePriority = (role) => rolePriorityByValue[String(role || "member").trim()] ?? 99;
+
+    const pickPreferredIdentityRow = (rows = []) => [...rows]
+        .sort((left, right) => {
+            const priorityGap = getRolePriority(left?.role) - getRolePriority(right?.role);
+            if (priorityGap !== 0) {
+                return priorityGap;
+            }
+
+            const rightUpdatedAt = Date.parse(right?.updated_at || right?.updatedAt || right?.created_at || right?.createdAt || 0);
+            const leftUpdatedAt = Date.parse(left?.updated_at || left?.updatedAt || left?.created_at || left?.createdAt || 0);
+            return rightUpdatedAt - leftUpdatedAt;
+        })[0] || null;
+
     const fetchIdentityRow = async ({ identityId = null, channelId = null, userId = null }) => {
         const client = getSupabaseClient();
         const runQuery = (selectFields) => {
-            let query = client
+            const query = client
                 .from("identities")
                 .select(selectFields);
 
@@ -1297,8 +1317,7 @@ export const createChannelDataServiceContext = () => {
 
             return query
                 .eq("channel_id", channelId)
-                .eq("user_id", userId)
-                .single();
+                .eq("user_id", userId);
         };
 
         let response = await runQuery(identitySelectFields);
@@ -1310,13 +1329,20 @@ export const createChannelDataServiceContext = () => {
             throw response.error;
         }
 
+        const row = identityId
+            ? response.data
+            : pickPreferredIdentityRow(Array.isArray(response.data) ? response.data : []);
+        if (!row) {
+            throw new Error("频道成员身份尚未初始化完成。");
+        }
+
         return {
             current_claim_post_id: null,
             current_claim_selected_at: null,
             current_guess_name: null,
             current_guess_avatar: null,
             current_guess_selected_at: null,
-            ...response.data
+            ...row
         };
     };
 
@@ -1547,7 +1573,7 @@ export const createChannelDataServiceContext = () => {
             };
         }
 
-        const membership = await ensureApprovedMembership(channelId, snapshot);
+        const membership = await getCurrentMembership(channelId);
 
         if (membership?.status === "approved" && membership.identityId) {
             let reviewItems = [];
@@ -1592,7 +1618,6 @@ export const createChannelDataServiceContext = () => {
 
         const client = getSupabaseClient();
         const identity = await fetchIdentityRow({
-            identityId: membership.identityId || null,
             channelId: channelRow.id,
             userId: snapshot.user.id
         });

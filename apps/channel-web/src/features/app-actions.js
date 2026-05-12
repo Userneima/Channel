@@ -6,7 +6,11 @@ import { createMembershipActions } from "./membership/index.js";
 import { createRoundActions } from "./round/actions.js";
 import { createRuntimeActions } from "./runtime/index.js";
 import { createShellActions } from "./shell/index.js";
-import { getChannelActionErrorMessage, readBlobAsDataUrl } from "../shared/lib/helpers.js";
+import {
+    getChannelActionErrorMessage,
+    readBlobAsDataUrl,
+    resolveHighestChannelRole
+} from "../shared/lib/helpers.js";
 
 export const createAppActions = ({ store, dataService }) => {
     let toastTimer = null;
@@ -224,18 +228,25 @@ export const createAppActions = ({ store, dataService }) => {
             store.dispatch({ type: "round-management/close" });
         },
         async openMemberList() {
-            const role = store.getState().runtimeState.realIdentity.role;
-            const canManageMembers = ["owner", "admin"].includes(role);
+            const membershipStatus = store.getState().membershipState.status;
+            if (membershipStatus === "approved") {
+                await this.loadMemberDirectory();
+            }
+
+            const state = store.getState();
+            const effectiveRole = resolveHighestChannelRole({
+                members: state.membershipState.directoryItems || [],
+                currentUserId: state.authState.user?.id || "",
+                currentIdentityId: state.runtimeState.realIdentity.id,
+                fallbackRole: state.runtimeState.realIdentity.role
+            });
+            const canManageMembers = membershipStatus === "approved" && ["owner", "admin"].includes(effectiveRole);
             store.dispatch({
                 type: "member-list/open",
                 payload: {
                     mode: canManageMembers ? "manage" : "view"
                 }
             });
-
-            if (canManageMembers) {
-                await this.loadMemberDirectory();
-            }
         },
         closeMemberList() {
             store.dispatch({ type: "member-list/close" });

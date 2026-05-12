@@ -165,7 +165,7 @@ describe("channel view model selectors: composer/feed", () => {
         expect(vm.anonymousLocked).toBe(false);
     });
 
-    it("uses synced channel members as guess candidates", () => {
+    it("limits guess candidates to members who submitted a wish", () => {
         const state = createInitialState();
         state.authState.status = "authenticated";
         state.membershipState.status = "approved";
@@ -178,8 +178,9 @@ describe("channel view model selectors: composer/feed", () => {
             avatar: "octopus-avatar"
         };
         state.roundState.memberStatuses = [
-            { identityId: "identity-1", name: "章鱼烧", avatar: "octopus-avatar" },
-            { identityId: "identity-2", name: "测试账号", avatar: "test-avatar" }
+            { identityId: "identity-1", name: "章鱼烧", avatar: "octopus-avatar", wishSubmitted: true },
+            { identityId: "identity-2", name: "测试账号", avatar: "test-avatar", wishSubmitted: true },
+            { identityId: "identity-3", name: "CodexRPC", avatar: "rpc-avatar", wishSubmitted: false }
         ];
 
         const feedVm = selectFeedListVM(state);
@@ -187,8 +188,10 @@ describe("channel view model selectors: composer/feed", () => {
 
         expect(feedVm.candidates.some((member) => member.name === "测试账号")).toBe(true);
         expect(feedVm.candidates.some((member) => member.name === "章鱼烧")).toBe(false);
+        expect(feedVm.candidates.some((member) => member.name === "CodexRPC")).toBe(false);
         expect(composerVm.mentionMembers.some((member) => member.name === "测试账号")).toBe(true);
         expect(composerVm.mentionMembers.some((member) => member.name === "章鱼烧")).toBe(false);
+        expect(composerVm.mentionMembers.some((member) => member.name === "CodexRPC")).toBe(false);
     });
 
     it("renders reveal results in the composer panel", () => {
