@@ -25,9 +25,9 @@
     display: grid;
     gap: 0.28rem;
     padding: 0.9rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-border);
     border-radius: 1rem;
-    background: rgba(20, 20, 22, 0.86);
+    background: rgba(255, 253, 248, 0.84);
     backdrop-filter: blur(14px);
 }
 
@@ -79,9 +79,9 @@
     justify-items: center;
     gap: 0.55rem;
     padding: 1rem 0.9rem 0.95rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
     border-radius: 1.1rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-surface);
     color: inherit;
     text-align: center;
 }
@@ -123,23 +123,23 @@
 .guess-picker__action {
     flex: 1;
     min-height: 2.2rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--color-border);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(231, 229, 228, 0.9);
+    background: var(--color-surface-strong);
+    color: var(--color-text);
     font-size: 0.82rem;
 }
 
 .guess-picker__action.is-active {
     border-color: rgba(92, 124, 255, 0.38);
     background: rgba(92, 124, 255, 0.12);
-    color: #dbe3ff;
+    color: var(--color-accent-strong);
 }
 
 .guess-picker__action--secondary.is-active {
     border-color: rgba(245, 158, 11, 0.24);
     background: rgba(245, 158, 11, 0.12);
-    color: rgba(255, 223, 165, 0.9);
+    color: #9a5a00;
 }
 
 .guess-picker__action:disabled {
@@ -150,9 +150,9 @@
     display: grid;
     gap: 0.8rem;
     padding: 1rem 1.05rem 1.05rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
     border-radius: 1.1rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface);
 }
 
 .guess-picker__composer-head,
@@ -170,7 +170,7 @@
 .guess-picker__selection-label,
 .guess-picker__excluded-summary,
 .guess-picker__field-label {
-    color: rgba(255, 255, 255, 0.56);
+    color: var(--color-text-muted);
     font-size: 0.8rem;
 }
 
@@ -183,7 +183,7 @@
     border: 1px solid rgba(92, 124, 255, 0.22);
     border-radius: 999px;
     background: rgba(92, 124, 255, 0.1);
-    color: rgba(231, 229, 228, 0.92);
+    color: var(--color-accent-strong);
 }
 
 .guess-picker__selection-avatar {
@@ -207,9 +207,9 @@
     width: 100%;
     min-height: 7.4rem;
     padding: 0.9rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-surface);
     color: var(--color-text);
     font: inherit;
     line-height: 1.7;

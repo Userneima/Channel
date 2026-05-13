@@ -4,7 +4,7 @@
     gap: 0.9rem;
     padding: 1rem;
     border-radius: 1.35rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface);
 }
 
 .channel-intelligence__header,
@@ -35,7 +35,7 @@
 
 .channel-intelligence__header h3,
 .channel-intelligence-dialog__header h3 {
-    color: rgba(231, 229, 228, 0.92);
+    color: var(--color-text);
     font-size: 0.95rem;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .channel-intelligence__metrics {
-    color: rgba(231, 229, 228, 0.82);
+    color: var(--color-text);
     font-size: 0.96rem;
 }
 
@@ -65,7 +65,7 @@
     gap: 0.22rem;
     padding: 0.78rem 0.82rem;
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--color-surface-strong);
 }
 
 .channel-intelligence__round {
@@ -73,7 +73,7 @@
     gap: 0.5rem;
     padding: 0.82rem;
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--color-surface-strong);
 }
 
 .channel-intelligence__round-head {
@@ -106,7 +106,7 @@
 }
 
 .channel-intelligence__round-value {
-    color: rgba(231, 229, 228, 0.88);
+    color: var(--color-text);
     font-size: 0.84rem;
     line-height: 1.45;
 }
@@ -147,19 +147,19 @@
     padding: 0 0.7rem;
     border: 0;
     border-radius: 999px;
-    background: rgba(92, 124, 255, 0.14);
-    color: rgba(231, 229, 228, 0.9);
+    background: rgba(92, 124, 255, 0.12);
+    color: var(--color-accent-strong);
     font-size: 0.78rem;
 }
 
 .channel-intelligence__action-button.is-quiet {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-surface-soft);
     color: var(--color-text-muted);
 }
 
 .channel-intelligence__action-button.is-danger {
     background: rgba(255, 107, 107, 0.14);
-    color: rgba(255, 171, 171, 0.94);
+    color: #b64040;
 }
 
 .channel-intelligence__picker,
@@ -185,8 +185,8 @@
     padding: 0 0.6rem;
     border: 0;
     border-radius: 0.85rem;
-    background: rgba(255, 255, 255, 0.03);
-    color: rgba(231, 229, 228, 0.88);
+    background: var(--color-surface-soft);
+    color: var(--color-text);
     text-align: left;
 }
 
@@ -216,7 +216,7 @@
     gap: 0.55rem;
     padding: 0.82rem;
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--color-surface-strong);
 }
 
 .channel-intelligence__archive-list,
@@ -230,17 +230,17 @@
     display: grid;
     gap: 0.18rem;
     padding: 0.68rem 0.72rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
     border-radius: 0.9rem;
-    background: rgba(255, 255, 255, 0.02);
-    color: rgba(231, 229, 228, 0.9);
+    background: var(--color-surface);
+    color: var(--color-text);
     text-align: left;
 }
 
 .channel-intelligence__archive-open {
     justify-self: start;
     margin-top: 0.2rem;
-    color: rgba(231, 229, 228, 0.58);
+    color: var(--color-text-muted);
     font-size: 0.72rem;
 }
 
@@ -252,7 +252,7 @@
 .channel-intelligence__archive-title,
 .channel-intelligence__archive-detail-title {
     font-size: 0.82rem;
-    color: rgba(231, 229, 228, 0.92);
+    color: var(--color-text);
 }
 
 .channel-intelligence__archive-meta,
@@ -280,11 +280,11 @@
     gap: 0.22rem;
     padding: 0.58rem 0.62rem;
     border-radius: 0.85rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-soft);
 }
 
 .channel-intelligence__archive-stat strong {
-    color: rgba(231, 229, 228, 0.9);
+    color: var(--color-text);
     font-size: 0.84rem;
     font-weight: 500;
 }
@@ -481,7 +481,7 @@
     position: absolute;
     inset: 0;
     border: 0;
-    background: rgba(0, 0, 0, 0.46);
+    background: rgba(64, 46, 24, 0.16);
     opacity: 0;
     transition: opacity 180ms ease;
 }
@@ -494,10 +494,10 @@
     width: min(42rem, calc(100vw - 2rem));
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-border);
     border-radius: 1.6rem;
-    background: #1d1d1d;
-    box-shadow: 0 28px 72px rgba(0, 0, 0, 0.38);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-overlay);
     transform: translate(-50%, 1rem) scale(0.98);
     opacity: 0;
     transition: transform 180ms ease, opacity 180ms ease;
@@ -522,12 +522,12 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 1rem;
     padding: 1rem 1.1rem 0.9rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .channel-intelligence-dialog__metrics {
     margin-top: 0.45rem;
-    color: rgba(231, 229, 228, 0.84);
+    color: var(--color-text);
     font-size: 0.92rem;
 }
 
@@ -560,7 +560,7 @@
 .channel-intelligence__post,
 .channel-intelligence__question {
     border-radius: 0.95rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-strong);
 }
 
 .channel-intelligence__theme {
@@ -569,7 +569,7 @@
     justify-content: space-between;
     gap: 0.75rem;
     padding: 0.65rem 0.8rem;
-    color: rgba(231, 229, 228, 0.84);
+    color: var(--color-text);
     font-size: 0.85rem;
 }
 
@@ -592,7 +592,7 @@
 .channel-intelligence__post-body,
 .channel-intelligence__question p,
 .channel-intelligence__empty {
-    color: rgba(231, 229, 228, 0.84);
+    color: var(--color-text);
     font-size: 0.86rem;
     line-height: 1.55;
 }
@@ -623,12 +623,12 @@
     z-index: 2;
     margin: -0.9rem -1.1rem 0;
     padding: 0.9rem 1.1rem 0.8rem;
-    background: linear-gradient(180deg, #1d1d1d 82%, rgba(29, 29, 29, 0.82));
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(255, 253, 248, 0.96) 82%, rgba(255, 253, 248, 0.82));
+    border-bottom: 1px solid var(--color-border);
 }
 
 .channel-intelligence__archive-hint {
-    color: rgba(231, 229, 228, 0.66);
+    color: var(--color-text-muted);
     font-size: 0.82rem;
     line-height: 1.45;
 }

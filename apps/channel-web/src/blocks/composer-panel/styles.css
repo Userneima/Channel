@@ -4,7 +4,7 @@
     padding: 0.5rem 0.9rem 0.62rem;
     border: 1px solid var(--color-border);
     border-radius: 1rem;
-    background: var(--color-page);
+    background: var(--color-surface);
     margin-bottom: 0.45rem;
 }
 
@@ -74,7 +74,7 @@
     border: 1px solid rgba(92, 124, 255, 0.34);
     border-radius: 999px;
     background: rgba(92, 124, 255, 0.14);
-    color: rgba(231, 229, 228, 0.94);
+    color: var(--color-accent-strong);
     font-size: 0.82rem;
     white-space: nowrap;
     flex-shrink: 0;
@@ -88,7 +88,7 @@
 
 .composer-panel__stage-lock-title,
 .composer-panel__stage-note-title {
-    color: rgba(231, 229, 228, 0.9);
+    color: var(--color-text);
     font-size: 0.92rem;
 }
 
@@ -110,9 +110,9 @@
     gap: 0.35rem;
     max-width: 33rem;
     padding: 0.7rem 0.85rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-border);
     border-radius: 0.9rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-strong);
 }
 
 .composer-panel__claim-card--compact {
@@ -120,7 +120,7 @@
 }
 
 .composer-panel__claim-label {
-    color: rgba(255, 255, 255, 0.54);
+    color: var(--color-text-muted);
     font-size: 0.74rem;
 }
 
@@ -128,7 +128,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(231, 229, 228, 0.92);
+    color: var(--color-text);
     font-size: 0.88rem;
 }
 
@@ -183,9 +183,9 @@
     overflow: hidden;
     min-height: 2.6rem;
     padding: 0 0.95rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-border);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-surface-strong);
     color: var(--color-text-faint);
     text-align: left;
 }
@@ -210,7 +210,7 @@
     gap: 1rem;
     min-height: 2.85rem;
     padding-bottom: 0.65rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .composer-panel__tools,
@@ -244,9 +244,9 @@
     gap: 0.35rem;
     height: 2rem;
     padding: 0 0.72rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-strong);
     color: var(--color-text-muted);
 }
 
@@ -262,7 +262,7 @@
     align-items: center;
     padding: 0.38rem 0.72rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--color-surface-soft);
 }
 
 .composer-panel__mode-toggle .material-icons-outlined {
@@ -291,10 +291,10 @@
     display: none;
     gap: 0.25rem;
     padding: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
     border-radius: 0.95rem;
-    background: #202020;
-    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-floating);
 }
 
 .composer-panel__mention-menu.is-open {
@@ -327,7 +327,7 @@
 }
 
 .composer-panel__mention-option:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(53, 39, 25, 0.05);
 }
 
 .composer-panel__mention-avatar {
@@ -350,7 +350,7 @@
     border: 1px solid rgba(92, 124, 255, 0.18);
     border-radius: 999px;
     background: rgba(92, 124, 255, 0.08);
-    color: rgba(231, 229, 228, 0.9);
+    color: var(--color-accent-strong);
     font-size: 0.82rem;
 }
 
