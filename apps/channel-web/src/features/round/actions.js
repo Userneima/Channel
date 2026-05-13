@@ -184,11 +184,14 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
                         detail
                     }
                 });
-                await loadFeed(store.getState().feedState.activeBoard);
                 store.dispatch({
                     type: "channel-intelligence/set-field",
-                    payload: { archiveDetailOpen: false }
+                    payload: {
+                        selectedArchiveId: normalizedRoundId,
+                        archiveDetailOpen: false
+                    }
                 });
+                await loadFeed(store.getState().feedState.activeBoard);
             } catch (error) {
                 showToast({
                     tone: "error",
@@ -212,7 +215,10 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
             });
             store.dispatch({
                 type: "channel-intelligence/set-field",
-                payload: { archiveDetailOpen: false }
+                payload: {
+                    archiveDetailOpen: false,
+                    selectedArchiveId: null
+                }
             });
             await loadFeed(store.getState().feedState.activeBoard);
         },
@@ -627,64 +633,33 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
                 return;
             }
 
-            if (!state.roundState.godProfile?.name) {
+            if (typeof dataService.archiveCurrentRound !== "function") {
                 showToast({
-                    tone: "info",
-                    message: "先指定本周上帝，再开始新一轮。"
-                });
-                return;
-            }
-
-            if (!String(state.roundState.theme || "").trim()) {
-                showToast({
-                    tone: "info",
-                    message: "先设置本周主题，再开始新一轮。"
+                    tone: "error",
+                    message: "当前环境还没接上真正的新回合创建能力。"
                 });
                 return;
             }
 
             try {
-                await dataService.resetChannelRoundProgress?.();
-                const startedAt = new Date().toISOString();
-                const nextChannel = await dataService.updateChannelRoundState({
-                    stage: "wish",
-                    status: "active",
-                    startedAt,
-                    completedAt: null,
-                    deadlines: getRoundDeadlinesForSave(state),
-                    revealMap: {}
-                });
+                const nextChannel = await dataService.archiveCurrentRound({ mode: "normal" });
                 store.dispatch({
                     type: "runtime/update-channel",
                     payload: { channel: nextChannel }
                 });
-                store.dispatch({
-                    type: "round/set-claim-selection",
-                    payload: { selection: null }
-                });
-                store.dispatch({
-                    type: "round/set-guess-selection",
-                    payload: { selection: null }
-                });
-                store.dispatch({
-                    type: "round/mark-progress",
-                    payload: {
-                        wishSubmitted: false,
-                        claimSelected: false,
-                        deliverySubmitted: false,
-                        guessSubmitted: false
-                    }
-                });
+                await actions.refreshCurrentRound({ silent: true });
+                store.dispatch({ type: "round/reset-transient-progress" });
                 await actions.refreshRoundMemberStatuses({ silent: true });
+                await actions.refreshRoundArchives({ silent: true });
                 await loadFeed("wish");
                 showToast({
                     tone: "success",
-                    message: "新一轮已开启，当前进入许愿阶段。"
+                    message: "上一轮已归档，当前已切到新一轮。"
                 });
             } catch (error) {
                 showToast({
                     tone: "error",
-                    message: getChannelActionErrorMessage("update_round_state", error)
+                    message: getChannelActionErrorMessage("archive_round", error)
                 });
             }
         },
@@ -792,7 +767,7 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
                 store.dispatch({ type: "round/reset-transient-progress" });
                 await actions.refreshRoundMemberStatuses({ silent: true });
                 await actions.refreshRoundArchives({ silent: true });
-                await loadFeed("all");
+                await loadFeed("wish");
                 showToast({
                     tone: "success",
                     message: "本轮已归档，新一轮已开始。"
@@ -832,7 +807,7 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
                 store.dispatch({ type: "round/reset-transient-progress" });
                 await actions.refreshRoundMemberStatuses({ silent: true });
                 await actions.refreshRoundArchives({ silent: true });
-                await loadFeed("all");
+                await loadFeed("wish");
                 showToast({
                     tone: "success",
                     message: "当前回合已强制归档，新一轮已开始。"

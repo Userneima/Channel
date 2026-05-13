@@ -27,7 +27,11 @@ const createMockDataService = () => ({
     updateChannel: vi.fn(),
     updateChannelRoundState: vi.fn(),
     listRoundMemberStatuses: vi.fn(),
-    resetChannelRoundProgress: vi.fn()
+    resetChannelRoundProgress: vi.fn(),
+    getArchivedRoundDetail: vi.fn(),
+    loadCurrentRound: vi.fn(),
+    listArchivedRounds: vi.fn(),
+    archiveCurrentRound: vi.fn()
 });
 
 describe("sidebar nav account menu", () => {
@@ -138,5 +142,60 @@ describe("sidebar nav account menu", () => {
         expect(root.textContent).toContain("真实频道会使用正式账号和真实数据。");
         expect(root.textContent).not.toContain("试玩只是为了让你快速理解机制");
         expect(root.querySelector(".sidebar-nav__promo")).toBeTruthy();
+    });
+
+    it("renders round navigation and switches between current and archived rounds", async () => {
+        dataService.getArchivedRoundDetail.mockResolvedValue({
+            id: "archive-1",
+            title: "2026.04.23 · 玄学测试",
+            currentStage: "reveal",
+            revealPairs: [],
+            posts: []
+        });
+        dataService.listPosts.mockResolvedValue([]);
+
+        store.dispatch({
+            type: "runtime/update-channel",
+            payload: {
+                channel: {
+                    id: "channel-1",
+                    slug: "channel",
+                    name: "品运一家人",
+                    logoUrl: "channel-logo",
+                    currentRoundId: "round-current",
+                    currentRoundTheme: "解压",
+                    currentRoundStartedAt: "2026-05-13T12:00:00.000Z"
+                }
+            }
+        });
+        store.dispatch({
+            type: "round/set-archives",
+            payload: {
+                items: [{
+                    id: "archive-1",
+                    title: "玄学测试",
+                    theme: "玄学测试",
+                    completedAt: "2026-04-23T12:00:00.000Z",
+                    revealPairs: [],
+                    stats: { pairCount: 0 }
+                }]
+            }
+        });
+        block.render();
+
+        expect(root.textContent).toContain("游戏轮次");
+        expect(root.textContent).toContain("2026.05.13 · 解压");
+        expect(root.textContent).toContain("2026.04.23 · 玄学测试");
+
+        root.querySelector("[data-sidebar-round-kind='archive']")?.click();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(store.getState().roundState.archiveViewerRoundId).toBe("archive-1");
+
+        root.querySelector("[data-sidebar-round-kind='current']")?.click();
+        await Promise.resolve();
+
+        expect(store.getState().roundState.archiveViewerRoundId).toBeNull();
     });
 });

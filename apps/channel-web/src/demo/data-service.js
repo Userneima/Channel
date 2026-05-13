@@ -148,6 +148,7 @@ export const createDemoDataService = () => {
     let posts = clonePostList(demoPosts);
     let postCounter = 1;
     let commentCounter = 1;
+    let roundCounter = 2;
 
     const getCurrentUserId = () => auth.user?.id || "demo-user";
     const getCurrentIdentity = () => ({
@@ -414,8 +415,52 @@ export const createDemoDataService = () => {
             return normalizeRoundArchivePost(post);
         },
         async archiveCurrentRound() {
-            channel.currentRoundStatus = "archived";
-            channel.currentRoundCompletedAt = new Date().toISOString();
+            const completedAt = new Date().toISOString();
+            const revealPairs = Object.values(channel.currentRevealMap || {})
+                .filter((entry) => entry?.member?.name && entry?.angel?.name)
+                .sort((left, right) => left.member.name.localeCompare(right.member.name, "zh-Hans-CN"));
+            const activePosts = posts.filter((post) => !post.roundArchive);
+            const completedDate = String(completedAt).slice(0, 10);
+
+            await this.saveRoundArchive({
+                id: `demo-archive-${completedAt}`,
+                title: "",
+                theme: channel.currentRoundTheme || "",
+                summaryLine: `${channel.currentRoundTheme || "未命名主题"} · ${revealPairs.length} 对揭晓 · ${completedDate}`,
+                stage: channel.currentRoundStage || "reveal",
+                status: "archived",
+                startedAt: channel.currentRoundStartedAt || completedAt,
+                completedAt,
+                createdAt: completedAt,
+                godProfile: channel.currentRoundGodProfile ? { ...channel.currentRoundGodProfile } : null,
+                stats: {
+                    totalMembers: 1,
+                    wishDone: activePosts.filter((post) => post.board === "wish" && !post.isDeleted).length,
+                    claimDone: Number(Boolean(memberRuntime.claimSelection?.postId)),
+                    deliveryDone: activePosts.filter((post) => post.board === "delivery" && !post.isDeleted).length,
+                    guessDone: activePosts.filter((post) => post.board === "guess" && !post.isDeleted).length,
+                    revealDone: revealPairs.length,
+                    pairCount: revealPairs.length
+                },
+                revealPairs,
+                posts: activePosts.map((post) => ({
+                    ...cloneValue(post),
+                    body: post.text,
+                    comments: (post.comments || []).map((comment) => ({
+                        ...cloneValue(comment),
+                        body: comment.text
+                    }))
+                }))
+            });
+
+            posts = posts.filter((post) => Boolean(post.roundArchive));
+            channel.currentRoundId = `demo-round-${roundCounter++}`;
+            channel.currentRoundTheme = "";
+            channel.currentRoundStage = "wish";
+            channel.currentRoundStatus = "active";
+            channel.currentRoundStartedAt = completedAt;
+            channel.currentRoundCompletedAt = null;
+            channel.currentRevealMap = {};
             syncChannelReferences();
             return cloneValue(channel);
         },

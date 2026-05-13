@@ -6,6 +6,54 @@ const stageByValue = new Map(gameBoardStages.map((stage) => [stage.value, stage]
 
 export const getRoundStage = (value) => stageByValue.get(String(value || "").trim()) || gameBoardStages[0];
 
+export const formatRoundDateLabel = (value) => {
+    const timestamp = Date.parse(value || "");
+    if (!Number.isFinite(timestamp)) {
+        return "";
+    }
+
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+};
+
+export const buildRoundDisplayTitle = ({
+    title = "",
+    theme = "",
+    startedAt = null,
+    completedAt = null,
+    createdAt = null,
+    fallback = "未命名主题"
+} = {}) => {
+    const explicitTitle = String(title || "").trim();
+    const normalizedTheme = String(theme || "").trim();
+    const dateLabel = formatRoundDateLabel(startedAt || completedAt || createdAt || null);
+
+    if (explicitTitle && explicitTitle !== normalizedTheme) {
+        return explicitTitle;
+    }
+
+    if (dateLabel && normalizedTheme) {
+        return `${dateLabel} · ${normalizedTheme}`;
+    }
+
+    if (dateLabel) {
+        return `${dateLabel} · ${fallback}`;
+    }
+
+    if (explicitTitle) {
+        return explicitTitle;
+    }
+
+    if (normalizedTheme) {
+        return normalizedTheme;
+    }
+
+    return fallback;
+};
+
 export const extractRevealTargetName = (body) => {
     const firstLine = String(body || "").split(/\r?\n/, 1)[0]?.trim() || "";
     if (!firstLine.startsWith("@")) {

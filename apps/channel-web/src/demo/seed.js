@@ -48,6 +48,7 @@ export const demoChannel = {
     backgroundUrl: "",
     previewVisibility: "public",
     joinPolicy: "approval_required",
+    currentRoundId: "demo-round-1",
     currentRoundTheme: "玄学",
     currentRoundStage: "wish",
     currentRoundStatus: "active",

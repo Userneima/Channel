@@ -1,6 +1,6 @@
 import { defaultRoundDeadlines, gameBoardStages } from "../../entities/channel/config.js";
 import { isEntryOwnedByIdentity } from "../../shared/lib/anonymous-display.js";
-import { buildChannelMemberOptions } from "../../features/round/model.js";
+import { buildChannelMemberOptions, buildRoundDisplayTitle } from "../../features/round/model.js";
 
 const stageByValue = new Map(gameBoardStages.map((stage) => [stage.value, stage]));
 
@@ -163,7 +163,12 @@ export const selectChannelIntelligenceVM = (state) => {
         : null;
     const archives = rawArchives.map((archive) => ({
         ...archive,
-        displayTitle: archive.title || archive.theme || "未命名回合",
+        displayTitle: buildRoundDisplayTitle({
+            title: archive.title,
+            theme: archive.theme,
+            completedAt: archive.completedAt,
+            createdAt: archive.createdAt
+        }),
         completedDateLabel: formatArchiveDate(archive.completedAt || archive.createdAt),
         metaLine: buildArchiveMetaLine(archive),
         isSelected: archive.id === effectiveSelectedArchiveId

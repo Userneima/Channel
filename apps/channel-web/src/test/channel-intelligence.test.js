@@ -80,7 +80,7 @@ describe("channel intelligence block", () => {
         const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
 
-        expect(root.textContent).toContain("本周回合");
+        expect(root.textContent).toContain("当前回合");
         expect(root.textContent).not.toContain("国王与天使");
         expect(root.textContent).toContain("本周上帝");
         expect(root.textContent).toContain("指定上帝");

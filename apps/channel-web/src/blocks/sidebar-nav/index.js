@@ -31,7 +31,7 @@ export const mountSidebarNavBlock = ({ root, store, actions }) => {
             || previousVM.currentUserEmail !== vm.currentUserEmail
             || previousVM.canLogout !== vm.canLogout
             || JSON.stringify(previousVM.navItems) !== JSON.stringify(vm.navItems)
-            || JSON.stringify(previousVM.channelItems) !== JSON.stringify(vm.channelItems)
+            || JSON.stringify(previousVM.roundItems) !== JSON.stringify(vm.roundItems)
             || JSON.stringify(previousVM.unjoinedItems) !== JSON.stringify(vm.unjoinedItems);
     };
 

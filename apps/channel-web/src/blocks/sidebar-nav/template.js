@@ -17,7 +17,7 @@ export const sidebarNavTemplate = (vm) => `
         </div>
         <button class="sidebar-nav__search" data-sidebar-action="search" type="button">
             <span class="material-icons-outlined">search</span>
-            <span class="sidebar-nav__search-placeholder">在本频道搜索</span>
+            <span class="sidebar-nav__search-placeholder">在当前回合搜索</span>
         </button>
         ${vm.demoPromo ? `
             <div class="sidebar-nav__section sidebar-nav__section--promo">
@@ -56,21 +56,23 @@ export const sidebarNavTemplate = (vm) => `
             </div>
         ` : ""}
         <div class="sidebar-nav__section">
-            <div class="sidebar-nav__section-head">
-                <div class="sidebar-nav__section-title">我的频道</div>
-                <button class="sidebar-nav__create" data-sidebar-action="create-channel" type="button">
-                    <span class="material-icons-outlined">add</span>
-                    <span>创建</span>
-                </button>
-            </div>
+            <div class="sidebar-nav__section-title">游戏轮次</div>
             <nav class="sidebar-nav__links">
-                ${vm.channelItems.map((item) => `
-                    <a class="sidebar-nav__channel ${item.active ? "is-active" : ""}" href="${escapeHtml(item.href || "#")}">
+                ${vm.roundItems.map((item) => `
+                    <button
+                        class="sidebar-nav__channel ${item.active ? "is-active" : ""}"
+                        data-sidebar-round-id="${escapeHtml(item.id || "")}"
+                        data-sidebar-round-kind="${escapeHtml(item.kind || "current")}"
+                        type="button"
+                    >
                         ${item.avatar
         ? `<img alt="${escapeHtml(item.name)}" class="sidebar-nav__channel-avatar" src="${item.avatar}" />`
         : `<div class="sidebar-nav__channel-badge">${escapeHtml(item.badge)}</div>`}
-                        <div class="sidebar-nav__channel-text">${escapeHtml(item.name)}</div>
-                    </a>
+                        <span class="sidebar-nav__channel-text">
+                            <span class="sidebar-nav__channel-name">${escapeHtml(item.name)}</span>
+                            ${item.meta ? `<span class="sidebar-nav__channel-meta">${escapeHtml(item.meta)}</span>` : ""}
+                        </span>
+                    </button>
                 `).join("")}
             </nav>
         </div>

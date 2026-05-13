@@ -24,11 +24,6 @@ export const attachSidebarNavEvents = ({ root, actions }) => {
             return;
         }
 
-        if (action === "create-channel") {
-            actions.openCreateChannelPage();
-            return;
-        }
-
         if (action === "search") {
             actions.requestSearchFocus();
             return;
@@ -50,4 +45,21 @@ export const attachSidebarNavEvents = ({ root, actions }) => {
         }
     });
 
+    root.addEventListener("click", (event) => {
+        const roundButton = event.target.closest("[data-sidebar-round-id]");
+        if (!roundButton) {
+            return;
+        }
+
+        const roundKind = roundButton.dataset.sidebarRoundKind || "current";
+        const roundId = roundButton.dataset.sidebarRoundId || "";
+        actions.setSidebarOpen(false);
+
+        if (roundKind === "archive") {
+            void actions.viewSelectedArchiveInBoard(roundId);
+            return;
+        }
+
+        void actions.exitArchiveViewer();
+    });
 };

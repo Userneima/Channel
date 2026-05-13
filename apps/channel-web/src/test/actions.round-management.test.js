@@ -165,8 +165,40 @@ describe("channel feature actions: round management", () => {
         expect(store.getState().roundState.currentRoundId).toBe("round-next");
         expect(store.getState().roundState.activeStage).toBe("wish");
         expect(store.getState().roundState.claimSelection).toBeNull();
-        expect(store.getState().feedState.activeBoard).toBe("all");
+        expect(store.getState().feedState.activeBoard).toBe("wish");
         expect(store.getState().overlayState.toast.message).toBe("本轮已归档，新一轮已开始。");
+    });
+
+    it("uses archive-and-switch semantics when explicitly starting a new round", async () => {
+        dataService.archiveCurrentRound.mockResolvedValue({
+            ...store.getState().runtimeState.channel,
+            currentRoundId: "round-next",
+            currentRoundTheme: "",
+            currentRoundStage: "wish",
+            currentRoundStatus: "active",
+            currentRoundCompletedAt: null,
+            currentRevealMap: {}
+        });
+        dataService.loadCurrentRound.mockResolvedValue({
+            id: "round-next",
+            lifecycleStatus: "active",
+            archiveMode: null,
+            currentStage: "wish",
+            theme: "",
+            deadlines: {},
+            godProfile: null,
+            revealMap: {},
+            completedAt: null
+        });
+        dataService.listArchivedRounds.mockResolvedValue([]);
+        dataService.listPosts.mockResolvedValue([]);
+
+        await actions.startRoundCycle();
+
+        expect(dataService.archiveCurrentRound).toHaveBeenCalledWith({ mode: "normal" });
+        expect(store.getState().roundState.currentRoundId).toBe("round-next");
+        expect(store.getState().feedState.activeBoard).toBe("wish");
+        expect(store.getState().overlayState.toast.message).toBe("上一轮已归档，当前已切到新一轮。");
     });
 
     it("deletes the selected archived round and closes the detail dialog", async () => {

@@ -205,7 +205,7 @@ const buildArchives = (vm) => `
                 `).join("")}
             </div>
         ` : `
-            <div class="channel-intelligence__archive-empty">本轮结束后，右侧会自动生成一份回合归档，方便回看主题、上帝和揭晓结果。</div>
+            <div class="channel-intelligence__archive-empty">结束当前回合后，历史记录会留在这里，也会同步出现在左侧轮次列表里。</div>
         `}
     </section>
 `;
@@ -216,7 +216,7 @@ export const channelIntelligenceTemplate = (vm) => `
             <section class="channel-intelligence__round">
                 <div class="channel-intelligence__round-head">
                     <div>
-                        <h3>本周回合</h3>
+                        <h3>当前回合</h3>
                     </div>
                 </div>
                 <div class="channel-intelligence__round-row ${vm.canManageRound ? "is-with-action" : ""}">
