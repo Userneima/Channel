@@ -52,6 +52,11 @@ export const mountChannelIntelligenceBlock = ({ root, dialogRoot = null, store, 
 
         return previousVM.godPickerOpen !== vm.godPickerOpen
             || previousVM.themeEditorOpen !== vm.themeEditorOpen
+            || previousVM.wishDeadlineEditorOpen !== vm.wishDeadlineEditorOpen
+            || previousVM.wishDeadlineDisplay !== vm.wishDeadlineDisplay
+            || previousVM.wishDeadlineRelativeLabel !== vm.wishDeadlineRelativeLabel
+            || previousVM.wishDeadlineDraftValue !== vm.wishDeadlineDraftValue
+            || previousVM.wishDeadlineButtonLabel !== vm.wishDeadlineButtonLabel
             || previousVM.revealEditorOpen !== vm.revealEditorOpen
             || previousVM.revealMemberPickerOpen !== vm.revealMemberPickerOpen
             || previousVM.revealAngelPickerOpen !== vm.revealAngelPickerOpen

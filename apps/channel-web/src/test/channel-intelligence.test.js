@@ -11,6 +11,10 @@ const createActions = () => ({
     cancelRoundThemeEditing: vi.fn(),
     setRoundThemeDraft: vi.fn(),
     saveRoundTheme: vi.fn(),
+    toggleRoundDeadlineEditor: vi.fn(),
+    cancelRoundDeadlineEditing: vi.fn(),
+    setRoundDeadlineDraft: vi.fn(),
+    saveRoundDeadlines: vi.fn(),
     toggleRoundRevealEditor: vi.fn(),
     generateRoundRevealResults: vi.fn(),
     toggleRoundRevealMemberPicker: vi.fn(),
@@ -188,6 +192,48 @@ describe("channel intelligence block", () => {
         expect(dialogRoot.textContent).toContain("希望有人帮我整理玄学学习目录");
         expect(dialogRoot.textContent).toContain("删除记录");
         expect(dialogRoot.textContent).toContain("导出备份");
+
+        root.remove();
+        dialogRoot.remove();
+    });
+
+    it("opens the wish deadline editor when clicking the deadline action", () => {
+        const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
+        document.body.append(root);
+        document.body.append(dialogRoot);
+        const store = createStore();
+        const actions = createActions();
+
+        store.dispatch({
+            type: "runtime/update-identity",
+            payload: {
+                identity: {
+                    role: "owner"
+                }
+            }
+        });
+
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
+        block.render();
+
+        root.querySelector("[data-channel-intelligence-action='toggle-deadline-editor']")?.click();
+        expect(actions.toggleRoundDeadlineEditor).toHaveBeenCalledTimes(1);
+
+        store.dispatch({
+            type: "round-management/set-field",
+            payload: {
+                deadlineEditorOpen: true,
+                draftDeadlines: {
+                    wish: {
+                        deadlineAt: "2026-05-13T14:00:00.000Z"
+                    }
+                }
+            }
+        });
+        block.render();
+
+        expect(root.querySelector("[data-channel-intelligence-ref='wish-deadline-input']")).toBeTruthy();
 
         root.remove();
         dialogRoot.remove();
