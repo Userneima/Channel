@@ -13,7 +13,7 @@
 .comment-drawer__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.44);
+    background: rgba(64, 46, 24, 0.16);
     opacity: 0;
     transition: opacity 180ms ease;
 }
@@ -26,13 +26,13 @@
     max-height: 880px;
     display: grid;
     grid-template-rows: auto 1fr auto;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-border);
     border-radius: 1.75rem;
-    background: #1d1d1d;
+    background: var(--color-surface);
     transform: translateY(1rem) scale(0.98);
     opacity: 0;
     transition: transform 180ms ease, opacity 180ms ease;
-    box-shadow: 0 28px 72px rgba(0, 0, 0, 0.38);
+    box-shadow: var(--shadow-overlay);
     overflow: hidden;
 }
 
@@ -93,9 +93,9 @@
     align-items: center;
     margin-left: 0.45rem;
     padding: 0.12rem 0.42rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--color-border);
     border-radius: 999px;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text-muted);
     font-size: 0.72rem;
     font-weight: 400;
     vertical-align: middle;
@@ -128,11 +128,11 @@
     margin-top: 1rem;
     padding: 0.95rem 1rem;
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-strong);
 }
 
 .comment-drawer__summary-title {
-    color: rgba(231, 229, 228, 0.9);
+    color: var(--color-text);
     font-size: 0.9rem;
 }
 
@@ -149,7 +149,7 @@
     min-height: 1.35rem;
     padding: 0 0.5rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--color-surface-soft);
     color: var(--color-text-muted);
     font-size: 0.72rem;
     line-height: 1;
@@ -174,14 +174,14 @@
 
 .comment-drawer__post-summary-lines p {
     margin: 0;
-    color: rgba(231, 229, 228, 0.84);
+    color: var(--color-text);
     font-size: 0.9rem;
     line-height: 1.55;
 }
 
 .comment-drawer__summary-item p {
     margin: 0.25rem 0 0;
-    color: rgba(231, 229, 228, 0.84);
+    color: var(--color-text);
     font-size: 0.9rem;
     line-height: 1.55;
 }

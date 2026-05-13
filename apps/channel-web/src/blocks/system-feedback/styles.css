@@ -15,7 +15,7 @@
 .system-feedback__blocking--error {
     inset: 0;
     align-items: center;
-    background: rgba(9, 10, 14, 0.72);
+    background: rgba(64, 46, 24, 0.18);
     pointer-events: auto;
 }
 
@@ -26,7 +26,7 @@
     padding: 0.55rem 0.85rem;
     border: 1px solid var(--color-border);
     border-radius: 999px;
-    background: rgba(36, 36, 36, 0.96);
+    background: rgba(255, 253, 248, 0.96);
     color: var(--color-text-muted);
     box-shadow: var(--shadow-overlay);
 }
@@ -40,7 +40,7 @@
     padding: var(--space-6);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-card);
-    background: #1d1d1d;
+    background: var(--color-surface);
     box-shadow: var(--shadow-floating);
     text-align: center;
 }
@@ -83,7 +83,7 @@
 .system-feedback__confirm-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(9, 10, 14, 0.42);
+    background: rgba(64, 46, 24, 0.16);
 }
 
 .system-feedback__confirm-card {
@@ -92,7 +92,7 @@
     padding: 1.1rem 1.15rem;
     border: 1px solid var(--color-border);
     border-radius: 1rem;
-    background: rgba(25, 25, 25, 0.98);
+    background: rgba(255, 253, 248, 0.98);
     box-shadow: var(--shadow-floating);
 }
 
@@ -109,7 +109,7 @@
 
 .system-feedback__confirm-error {
     margin-top: 0.75rem;
-    color: #f87171;
+    color: #b64040;
     font-size: 0.88rem;
     line-height: 1.5;
 }
@@ -133,7 +133,7 @@
 .system-feedback__confirm-button--danger {
     border-color: rgba(248, 113, 113, 0.18);
     background: rgba(127, 29, 29, 0.2);
-    color: #fda4af;
+    color: #b64040;
 }
 
 .system-feedback__toast {
@@ -148,7 +148,7 @@
     padding: 0.85rem 1rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
-    background: rgba(17, 22, 31, 0.96);
+    background: rgba(255, 253, 248, 0.96);
     color: var(--color-text);
     opacity: 0;
     transform: translateY(1rem);

@@ -9,7 +9,7 @@
 .notification-center__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.08);
+    background: rgba(64, 46, 24, 0.14);
     opacity: 0;
     transition: opacity 160ms ease;
 }
@@ -19,9 +19,9 @@
     width: min(20.75rem, calc(100vw - 1.2rem));
     height: min(30.5rem, calc(100vh - 5.1rem));
     border-radius: 0.88rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: linear-gradient(180deg, rgba(33, 36, 44, 0.98), rgba(23, 24, 29, 0.98));
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.26);
+    border: 1px solid var(--color-border);
+    background: linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(246, 241, 232, 0.98));
+    box-shadow: var(--shadow-floating);
     overflow: hidden;
     opacity: 0;
     transform: translateY(-0.32rem) scale(0.99);
@@ -46,7 +46,7 @@
 .notification-center__tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .notification-center__tab {
@@ -54,7 +54,7 @@
     padding: 0.78rem 0.72rem 0.72rem;
     border: 0;
     background: transparent;
-    color: rgba(255, 255, 255, 0.72);
+    color: var(--color-text-muted);
     font-size: 0.88rem;
     font-weight: 600;
 }
@@ -104,7 +104,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.72);
+    color: var(--color-text-muted);
     font-size: 0.73rem;
 }
 
@@ -121,8 +121,8 @@
 
 .notification-center__quote {
     padding-left: 0.6rem;
-    border-left: 2px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.54);
+    border-left: 2px solid var(--color-border);
+    color: var(--color-text-muted);
     font-size: 0.76rem;
     line-height: 1.35;
 }
@@ -141,8 +141,8 @@
     min-width: 5.8rem;
     height: 1.8rem;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-strong);
     color: var(--color-text);
     font-size: 0.78rem;
 }
@@ -155,7 +155,7 @@
 
 @media (max-width: 720px) {
     .notification-center__backdrop {
-        background: rgba(0, 0, 0, 0.22);
+        background: rgba(64, 46, 24, 0.18);
     }
 
     .notification-center__panel {

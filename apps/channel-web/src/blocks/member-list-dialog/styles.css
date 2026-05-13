@@ -9,7 +9,7 @@
 .member-list-dialog__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.42);
+    background: rgba(64, 46, 24, 0.16);
     opacity: 0;
     transition: opacity 180ms ease;
 }
@@ -22,10 +22,10 @@
     max-height: min(78vh, 38rem);
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-border);
     border-radius: 1.4rem;
-    background: #1d1d1d;
-    box-shadow: 0 28px 72px rgba(0, 0, 0, 0.38);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-overlay);
     overflow: hidden;
     transform: translate(-50%, calc(-50% + 1rem)) scale(0.98);
     opacity: 0;
@@ -52,7 +52,7 @@
     gap: 0.8rem;
     align-items: start;
     padding: 1rem 1rem 0.85rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .member-list-dialog__header-copy {
@@ -66,7 +66,7 @@
 }
 
 .member-list-dialog__header h3 {
-    color: rgba(231, 229, 228, 0.92);
+    color: var(--color-text);
     font-size: 0.95rem;
 }
 
@@ -87,8 +87,8 @@
     height: 2rem;
     border: 0;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(231, 229, 228, 0.84);
+    background: var(--color-surface-strong);
+    color: var(--color-text);
 }
 
 .member-list-dialog__body {
@@ -103,7 +103,7 @@
     gap: 0.72rem;
     padding: 0.78rem 0.82rem;
     border-radius: 0.95rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-strong);
 }
 
 .member-list-dialog__row {
@@ -127,7 +127,7 @@
 }
 
 .member-list-dialog__name {
-    color: rgba(231, 229, 228, 0.9);
+    color: var(--color-text);
     font-size: 0.86rem;
 }
 
@@ -145,8 +145,8 @@
     min-height: 1.7rem;
     padding: 0 0.65rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(231, 229, 228, 0.82);
+    background: var(--color-surface-soft);
+    color: var(--color-text-muted);
     font-size: 0.72rem;
     white-space: nowrap;
 }
@@ -163,8 +163,8 @@
     border: 0;
     border-radius: 999px;
     padding: 0.42rem 0.76rem;
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(231, 229, 228, 0.88);
+    background: var(--color-surface-soft);
+    color: var(--color-text);
     font-size: 0.74rem;
 }
 
@@ -177,14 +177,14 @@
 .member-list-dialog__action--danger,
 .member-list-dialog__confirm-button--danger {
     background: rgba(162, 67, 67, 0.2);
-    color: #ffb6b6;
+    color: #b64040;
 }
 
 .member-list-dialog__confirm {
     display: grid;
     gap: 0.55rem;
     padding: 0.78rem 0.82rem 0.2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--color-border);
 }
 
 .member-list-dialog__status,
@@ -194,7 +194,7 @@
 }
 
 .member-list-dialog__status--error {
-    color: #ffb6b6;
+    color: #b64040;
 }
 
 @media (max-width: 560px) {
