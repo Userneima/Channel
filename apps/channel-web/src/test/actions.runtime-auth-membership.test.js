@@ -36,6 +36,31 @@ describe("channel feature actions: runtime/auth/membership", () => {
         expect(state.feedState.items).toHaveLength(1);
     });
 
+    it("keeps guest preview users out of historical feed loading", async () => {
+        dataService.loadChannelBootstrap.mockResolvedValue({
+            channel: approvedRuntime.channel,
+            auth: {
+                user: null,
+                isAnonymous: false
+            },
+            membership: {
+                status: "guest",
+                joinRequest: null,
+                reviewItems: [],
+                role: null
+            },
+            memberRuntime: null
+        });
+
+        await actions.initializeChannelRuntime();
+
+        const state = store.getState();
+        expect(state.authState.status).toBe("guest");
+        expect(state.membershipState.status).toBe("guest");
+        expect(state.feedState.items).toHaveLength(0);
+        expect(dataService.listPosts).not.toHaveBeenCalled();
+    });
+
     it("logs in with password and refreshes approved runtime", async () => {
         store.dispatch({
             type: "auth/set-field",
@@ -210,7 +235,6 @@ describe("channel feature actions: runtime/auth/membership", () => {
             },
             memberRuntime: null
         });
-        dataService.listPosts.mockResolvedValue([{ id: "post-1", comments: [] }]);
 
         await actions.logout();
 
@@ -219,6 +243,8 @@ describe("channel feature actions: runtime/auth/membership", () => {
         expect(state.authState.status).toBe("guest");
         expect(state.membershipState.status).toBe("guest");
         expect(state.runtimeState.status).toBe("preview");
+        expect(state.feedState.items).toHaveLength(0);
+        expect(dataService.listPosts).not.toHaveBeenCalled();
     });
 
     it("creates channel and redirects into the new channel as owner", async () => {

@@ -143,7 +143,9 @@ describe("composer panel interactions", () => {
         block.render();
 
         const loginButton = root.querySelector("[data-composer-action='open-auth-login']");
+        const disabledTip = root.querySelector(".composer-panel__disabled-tip--with-action");
         expect(loginButton).toBeTruthy();
+        expect(disabledTip?.contains(loginButton)).toBe(true);
         expect(root.textContent).toContain("邮箱登录");
         expect(root.querySelector(".composer-panel__avatar")?.getAttribute("alt")).toBe("未登录");
 

@@ -25,6 +25,18 @@ const getPreferredBoard = (channel, fallbackBoard = "all") => (
     || fallbackBoard
 );
 
+const canLoadFeedForBootstrap = (bootstrap) => {
+    const auth = bootstrap?.auth || { user: null, isAnonymous: false };
+    return Boolean(auth.user) && !auth.isAnonymous;
+};
+
+const clearFeedPreview = (store) => {
+    store.dispatch({
+        type: "feed/load-success",
+        payload: { items: [] }
+    });
+};
+
 const applyBootstrapSnapshot = ({ store, bootstrap, source = "network", phase = "ready" }) => {
     const auth = bootstrap.auth || { user: null, isAnonymous: false };
     const isGuest = !auth.user || auth.isAnonymous;
@@ -52,6 +64,7 @@ const applyBootstrapSnapshot = ({ store, bootstrap, source = "network", phase = 
                 phase
             }
         });
+        clearFeedPreview(store);
         return;
     }
 
@@ -169,7 +182,7 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
         });
         store.dispatch({ type: "auth-gate/close" });
 
-        if (reloadFeed) {
+        if (reloadFeed && canLoadFeedForBootstrap(bootstrap)) {
             await feedActions.loadFeed(store.getState().feedState.activeBoard);
         }
     },
@@ -197,11 +210,9 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
                     source: "cache",
                     phase: "hydrating"
                 });
-                if (cachedBootstrap.channel?.id) {
+                if (cachedBootstrap.channel?.id && canLoadFeedForBootstrap(cachedBootstrap)) {
                     feedPromise = feedActions.loadFeed(getPreferredBoard(cachedBootstrap.channel, fallbackBoard));
                 }
-            } else if (shellChannel?.id) {
-                feedPromise = feedActions.loadFeed(getPreferredBoard(shellChannel, fallbackBoard));
             }
 
             const bootstrap = await dataService.loadChannelBootstrap(slug);
@@ -212,9 +223,14 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
                 phase: "ready"
             });
 
-            if (feedPromise) {
+            const shouldLoadFeed = Boolean(bootstrap.channel?.id) && canLoadFeedForBootstrap(bootstrap);
+
+            if (feedPromise && shouldLoadFeed) {
                 await feedPromise;
-            } else if (bootstrap.channel?.id) {
+            } else if (feedPromise) {
+                await feedPromise.catch(() => null);
+                clearFeedPreview(store);
+            } else if (shouldLoadFeed) {
                 await feedActions.loadFeed(getPreferredBoard(bootstrap.channel, fallbackBoard));
             }
 

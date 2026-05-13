@@ -79,12 +79,12 @@ export const composerPanelTemplate = (vm) => `
                     </button>
                 </div>
             </div>
-            <div class="composer-panel__disabled-tip">${escapeHtml(vm.gate?.description || "登录后即可参与频道。")}</div>
-            ${vm.gate?.primaryAction && vm.gate?.primaryLabel ? `
-                <div class="composer-panel__disabled-actions">
+            <div class="composer-panel__disabled-tip ${vm.gate?.primaryAction && vm.gate?.primaryLabel ? "composer-panel__disabled-tip--with-action" : ""}">
+                <span class="composer-panel__disabled-tip-copy">${escapeHtml(vm.gate?.description || "登录后即可参与频道。")}</span>
+                ${vm.gate?.primaryAction && vm.gate?.primaryLabel ? `
                     <button class="composer-panel__disabled-primary" data-composer-action="${escapeHtml(vm.gate.primaryAction)}" type="button">${escapeHtml(vm.gate.primaryLabel)}</button>
-                </div>
-            ` : ""}
+                ` : ""}
+            </div>
         ` : !vm.stageAllowsPosting ? `
             <div class="composer-panel__row composer-panel__row--disabled">
                 <button class="composer-panel__identity" type="button">
