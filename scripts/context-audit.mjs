@@ -19,6 +19,13 @@ const artifactPrefixes = [
     "test-results/",
     ".vercel/"
 ];
+const secondarySurfacePrefixes = [
+    "apps/king-angel-mini/",
+    "prototypes/",
+    "docs/ai-handover/",
+    "supabase/.temp/",
+    "apps/channel-web/e2e/"
+];
 
 const readText = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 const countLines = (text) => text.split(/\r?\n/).length;
@@ -83,6 +90,10 @@ const visibleArtifacts = fileList
     .filter((file) => artifactPrefixes.some((prefix) => file.startsWith(prefix)))
     .sort();
 
+const visibleSecondarySurfaces = fileList
+    .filter((file) => secondarySurfacePrefixes.some((prefix) => file.startsWith(prefix)))
+    .sort();
+
 const hardFailures = [];
 
 if (instructionStats.chars > hardLimits.instructionsChars) {
@@ -96,6 +107,9 @@ if (oversizedTestFiles.length) {
 }
 if (visibleArtifacts.length) {
     hardFailures.push("generated artifacts still appear in default rg search");
+}
+if (visibleSecondarySurfaces.length) {
+    hardFailures.push("secondary app / prototype surfaces still appear in default rg search");
 }
 
 console.log("Context audit");
@@ -119,6 +133,9 @@ console.log(...formatIssues(oversizedDocs, (item) => `${item.file}: ${item.chars
 console.log("");
 console.log("Generated artifacts visible to default rg:");
 console.log(...formatIssues(visibleArtifacts, (item) => item));
+console.log("");
+console.log("Secondary surfaces visible to default rg:");
+console.log(...formatIssues(visibleSecondarySurfaces, (item) => item));
 
 if (hardFailures.length) {
     console.error("");

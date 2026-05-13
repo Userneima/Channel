@@ -1,4 +1,10 @@
 apps/channel-web/dist/
+apps/channel-web/e2e/
+apps/king-angel-mini/
+prototypes/
+supabase/.temp/
+docs/ai-handover/
+.DS_Store
 coverage/
 playwright-report/
 test-results/

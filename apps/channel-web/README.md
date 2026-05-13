@@ -27,3 +27,9 @@
 - 如果只改视觉规则，优先同步 `docs/design/quiet-curator.md`
 - 不要把截图、对照稿、临时素材堆到 `public/`，这些应留在 `prototypes/` 或文档目录
 - 产品背景和作业说明放 `docs/product/`，不要回填进 app 目录
+
+AI 读码建议：
+- 默认从 `src/screens/`、`src/blocks/`、`src/features/` 的局部入口读起，不要先吞全量 state 或 data 层
+- 非数据层任务默认不要先读 `../data-service-support/core.js`
+- `src/features/round/actions.js`、`src/features/composer/index.js` 是高上下文成本文件，只有任务直接命中对应域时再打开
+- 小程序端 `../king-angel-mini/`、原型目录 `../../prototypes/`、handover 文档 `../../docs/ai-handover/` 都不是当前主维护面

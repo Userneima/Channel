@@ -25,6 +25,8 @@
 - 纯 UI 视觉一致性任务：按需读 `docs/design/quiet-curator.md`
 - 架构/边界问题：按需只读一份对应的 `docs/architecture/*`
 - 非测试任务先不要把大测试文件整段读进上下文
+- 默认不要读 `apps/king-angel-mini/`、`prototypes/`、`docs/ai-handover/`、`apps/channel-web/dist/`，这些都不是当前主工作面
+- `apps/channel-web/data-service-support/core.js`、`src/features/round/actions.js`、`src/features/composer/index.js` 属于高上下文成本文件；只有任务直接命中这层边界时才读
 
 ## Product Constraints
 - 用户体验优先于技术洁癖
