@@ -441,13 +441,14 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    color: var(--color-text-muted);
+    color: var(--color-text);
     font-size: 0.75rem;
 }
 
 .channel-intelligence__task-title {
-    color: rgba(231, 229, 228, 0.9);
+    color: var(--color-text);
     font-size: 0.88rem;
+    font-weight: 600;
 }
 
 .channel-intelligence__task-copy,
