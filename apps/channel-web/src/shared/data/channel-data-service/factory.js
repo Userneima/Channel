@@ -1,3 +1,4 @@
+import { createAdminApi } from "./admin.js";
 import { createAuthSessionApi } from "./auth-session.js";
 import { createCacheApi } from "./cache.js";
 import { createChannelBootstrapApi } from "./channel-bootstrap.js";
@@ -10,6 +11,7 @@ import { createRoundApi } from "./round.js";
 export const createChannelDataService = () => {
     const context = createChannelDataServiceContext();
     const api = {
+        ...createAdminApi(context),
         ...createAuthSessionApi(context),
         ...createCacheApi(context),
         ...createChannelBootstrapApi(context),

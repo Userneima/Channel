@@ -14,6 +14,7 @@ export const createMockDataService = () => ({
     loadApprovedMemberRuntime: vi.fn(),
     listPendingJoinRequests: vi.fn(),
     listChannelMembers: vi.fn(),
+    listRegisteredUsers: vi.fn(),
     loginWithPassword: vi.fn(),
     registerWithPassword: vi.fn(),
     upgradeLegacyAnonymousUser: vi.fn(),

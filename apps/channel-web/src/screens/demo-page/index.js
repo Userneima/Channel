@@ -15,6 +15,7 @@ import { mountChannelSettingsDialogBlock } from "../../blocks/channel-settings-d
 import { mountIdentityDialogBlock } from "../../blocks/identity-dialog/index.js";
 import { mountAuthGateBlock } from "../../blocks/auth-gate/index.js";
 import { mountSearchDialogBlock } from "../../blocks/search-dialog/index.js";
+import { mountRegisteredUsersDialogBlock } from "../../blocks/registered-users-dialog/index.js";
 import { mountSystemFeedbackBlock } from "../../blocks/system-feedback/index.js";
 
 export const mountDemoPage = ({ root, store, actions }) => {
@@ -37,6 +38,7 @@ export const mountDemoPage = ({ root, store, actions }) => {
         identityDialog: root.querySelector('[data-screen-slot="identity-dialog"]'),
         authGate: root.querySelector('[data-screen-slot="auth-gate"]'),
         searchDialog: root.querySelector('[data-screen-slot="search-dialog"]'),
+        registeredUsersDialog: root.querySelector('[data-screen-slot="registered-users-dialog"]'),
         systemFeedback: root.querySelector('[data-screen-slot="system-feedback"]')
     };
 
@@ -63,6 +65,7 @@ export const mountDemoPage = ({ root, store, actions }) => {
         mountIdentityDialogBlock({ root: blockSlots.identityDialog, store, actions }),
         mountAuthGateBlock({ root: blockSlots.authGate, store, actions }),
         mountSearchDialogBlock({ root: blockSlots.searchDialog, store, actions }),
+        mountRegisteredUsersDialogBlock({ root: blockSlots.registeredUsersDialog, store, actions }),
         mountSystemFeedbackBlock({ root: blockSlots.systemFeedback, store, actions })
     ];
 
@@ -107,6 +110,7 @@ export const mountDemoPage = ({ root, store, actions }) => {
         actions.closeOverlay("identity");
         actions.closeOverlay("auth-gate");
         actions.closeOverlay("search-dialog");
+        actions.closeOverlay("registered-users");
         actions.cancelDeleteConfirm?.();
         actions.setSidebarOpen(false);
         actions.setAccountMenuOpen(false);

@@ -116,6 +116,10 @@ export const cloneState = (state) => ({
                 comments: (item.comments || []).map((comment) => ({ ...comment }))
             }))
         },
+        registeredUsers: {
+            ...state.overlayState.registeredUsers,
+            items: (state.overlayState.registeredUsers?.items || []).map((item) => ({ ...item }))
+        },
         imageLightbox: {
             ...state.overlayState.imageLightbox,
             image: cloneSimple(state.overlayState.imageLightbox.image)

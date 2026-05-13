@@ -28,6 +28,12 @@ export const attachChannelMenuDialogEvents = ({ root, actions }) => {
             return;
         }
 
+        if (action === "registered-users") {
+            actions.closeOverlay("channel-menu");
+            void actions.openOverlay("registered-users");
+            return;
+        }
+
         if (action === "notification-settings") {
             actions.showToast({
                 tone: "info",

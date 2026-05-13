@@ -270,6 +270,9 @@ export const createDemoDataService = () => {
     });
 
     return {
+        async listRegisteredUsers() {
+            return [];
+        },
         async getAuthState() {
             return cloneValue(auth);
         },

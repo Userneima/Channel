@@ -8,6 +8,7 @@ import { createRuntimeActions } from "./runtime/index.js";
 import { createShellActions } from "./shell/index.js";
 import {
     getChannelActionErrorMessage,
+    isPlatformOperatorEmail,
     readBlobAsDataUrl,
     resolveHighestChannelRole
 } from "../shared/lib/helpers.js";
@@ -160,6 +161,10 @@ export const createAppActions = ({ store, dataService }) => {
             }
             if (name === "search-dialog") {
                 void this.openSearchDialog();
+                return;
+            }
+            if (name === "registered-users") {
+                void this.openRegisteredUsersDialog();
             }
         },
         closeOverlay(name) {
@@ -205,6 +210,10 @@ export const createAppActions = ({ store, dataService }) => {
             }
             if (name === "search-dialog") {
                 this.closeSearchDialog();
+                return;
+            }
+            if (name === "registered-users") {
+                this.closeRegisteredUsersDialog();
             }
         },
         showToast,
@@ -250,6 +259,40 @@ export const createAppActions = ({ store, dataService }) => {
         },
         closeMemberList() {
             store.dispatch({ type: "member-list/close" });
+        },
+        async openRegisteredUsersDialog() {
+            const email = store.getState().authState.user?.email || "";
+            if (!isPlatformOperatorEmail(email)) {
+                showToast({
+                    tone: "info",
+                    message: "这个入口只对指定后台账号开放。"
+                });
+                return;
+            }
+
+            store.dispatch({ type: "registered-users/open" });
+            store.dispatch({ type: "registered-users/load-start" });
+
+            try {
+                const items = await dataService.listRegisteredUsers();
+                store.dispatch({
+                    type: "registered-users/load-success",
+                    payload: { items }
+                });
+            } catch (error) {
+                const message = getChannelActionErrorMessage("load_registered_users", error);
+                store.dispatch({
+                    type: "registered-users/load-error",
+                    payload: { error: message }
+                });
+                showToast({
+                    tone: "error",
+                    message
+                });
+            }
+        },
+        closeRegisteredUsersDialog() {
+            store.dispatch({ type: "registered-users/close" });
         },
         openChannelSettings() {
             const role = store.getState().runtimeState.realIdentity.role;

@@ -5,6 +5,10 @@ export const escapeHtml = (value) => String(value ?? "")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+export const platformOperatorEmail = "wyc1186164839@gmail.com";
+
+export const isPlatformOperatorEmail = (email) => String(email || "").trim().toLowerCase() === platformOperatorEmail;
+
 const anonymousNamePrefixes = [
     "雾", "岚", "栖", "舟", "川", "汀", "野", "弦",
     "澄", "暮", "云", "白", "青", "鹿", "松", "迟"
@@ -361,6 +365,11 @@ export const getChannelActionErrorMessage = (action, error) => {
         if (action === "delete_round_archive") {
             if (lowerMessage.includes("only channel admins can delete archives")) {
                 return "您为普通成员，暂无删除往期回合记录的权限。";
+            }
+        }
+        if (action === "load_registered_users") {
+            if (lowerMessage.includes("only the designated platform operator can view registered users")) {
+                return "只有指定后台账号才能查看已注册用户。";
             }
         }
         return "当前操作被频道权限规则拦截，请刷新后重试。";

@@ -163,4 +163,18 @@ describe("channel view model selectors: comments/overlays", () => {
         expect(selectNotificationCenterVM(state).panelStyle).toContain("left:");
         expect(selectChannelMenuDialogVM(state).panelStyle).toContain("left:");
     });
+
+    it("only exposes the registered users entry to the designated operator account", () => {
+        const state = createInitialState();
+        state.authState.status = "authenticated";
+        state.authState.user = {
+            id: "user-1",
+            email: "wyc1186164839@gmail.com"
+        };
+
+        expect(selectChannelMenuDialogVM(state).canViewRegisteredUsers).toBe(true);
+
+        state.authState.user.email = "member@example.com";
+        expect(selectChannelMenuDialogVM(state).canViewRegisteredUsers).toBe(false);
+    });
 });

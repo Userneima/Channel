@@ -45,6 +45,10 @@ export const channelMenuDialogTemplate = (vm) => `
         action: "channel-management",
         label: "编辑频道资料"
     }) : ""}
+                ${vm.canViewRegisteredUsers ? buildMenuRow({
+        action: "registered-users",
+        label: "已注册用户"
+    }) : ""}
                 ${buildMenuRow({
         action: "notification-settings",
         label: "消息通知"

@@ -1,4 +1,5 @@
 import { channelShellConfig } from "../../entities/channel/config.js";
+import { isPlatformOperatorEmail } from "../../shared/lib/helpers.js";
 
 const DESKTOP_BREAKPOINT = 720;
 const CHANNEL_MENU_WIDTH = 314;
@@ -36,5 +37,7 @@ export const selectChannelMenuDialogVM = (state) => ({
     identityAvatar: state.runtimeState.realIdentity.avatar,
     canManageAnonymous: ["owner", "admin"].includes(state.runtimeState.realIdentity.role),
     canManageChannel: ["owner", "admin"].includes(state.runtimeState.realIdentity.role),
+    canViewRegisteredUsers: state.authState.status === "authenticated"
+        && isPlatformOperatorEmail(state.authState.user?.email),
     adminRevealAnonymous: state.uiState.adminRevealAnonymous
 });

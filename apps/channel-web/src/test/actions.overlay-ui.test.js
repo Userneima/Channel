@@ -199,4 +199,49 @@ describe("channel feature actions: overlay/ui", () => {
         expect(state.mode).toBe("view");
         expect(state.pendingRemoveIdentityId).toBe(null);
     });
+
+    it("opens the registered users dialog only for the designated operator account", async () => {
+        store.dispatch({
+            type: "auth/set-state",
+            payload: {
+                status: "authenticated",
+                user: { id: "user-1", email: "wyc1186164839@gmail.com" },
+                isAnonymous: false
+            }
+        });
+        dataService.listRegisteredUsers.mockResolvedValue([
+            {
+                userId: "user-1",
+                email: "wyc1186164839@gmail.com",
+                displayName: "Yuchao",
+                avatarUrl: "avatar",
+                createdAt: "2026-05-13T00:00:00.000Z",
+                lastSignInAt: "2026-05-13T01:00:00.000Z"
+            }
+        ]);
+
+        await actions.openRegisteredUsersDialog();
+
+        const state = store.getState().overlayState.registeredUsers;
+        expect(state.open).toBe(true);
+        expect(state.items).toHaveLength(1);
+        expect(dataService.listRegisteredUsers).toHaveBeenCalled();
+    });
+
+    it("blocks the registered users dialog for other accounts", async () => {
+        store.dispatch({
+            type: "auth/set-state",
+            payload: {
+                status: "authenticated",
+                user: { id: "user-2", email: "member@example.com" },
+                isAnonymous: false
+            }
+        });
+
+        await actions.openRegisteredUsersDialog();
+
+        const state = store.getState().overlayState.registeredUsers;
+        expect(state.open).toBe(false);
+        expect(dataService.listRegisteredUsers).not.toHaveBeenCalled();
+    });
 });

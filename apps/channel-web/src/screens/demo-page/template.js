@@ -32,6 +32,7 @@ export const demoPageTemplate = () => `
         <div data-screen-slot="identity-dialog"></div>
         <div data-screen-slot="auth-gate"></div>
         <div data-screen-slot="search-dialog"></div>
+        <div data-screen-slot="registered-users-dialog"></div>
         <div data-screen-slot="system-feedback"></div>
     </div>
 `;

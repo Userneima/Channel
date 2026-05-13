@@ -283,6 +283,26 @@ export const applyOverlayActions = (draft, action) => {
         draft.overlayState.searchDialog.status = "error";
         draft.overlayState.searchDialog.error = action.payload.error;
         return true;
+    case "registered-users/open":
+        draft.overlayState.registeredUsers.open = true;
+        return true;
+    case "registered-users/close":
+        draft.overlayState.registeredUsers.open = false;
+        return true;
+    case "registered-users/load-start":
+        draft.overlayState.registeredUsers.status = "loading";
+        draft.overlayState.registeredUsers.error = null;
+        return true;
+    case "registered-users/load-success":
+        draft.overlayState.registeredUsers.status = "ready";
+        draft.overlayState.registeredUsers.error = null;
+        draft.overlayState.registeredUsers.items = action.payload.items.map((item) => ({ ...item }));
+        return true;
+    case "registered-users/load-error":
+        draft.overlayState.registeredUsers.status = "error";
+        draft.overlayState.registeredUsers.error = action.payload.error;
+        draft.overlayState.registeredUsers.items = [];
+        return true;
     case "toast/show":
         draft.overlayState.toast = {
             visible: true,

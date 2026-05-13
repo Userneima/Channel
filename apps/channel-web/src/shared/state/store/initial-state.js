@@ -176,6 +176,12 @@ export const createInitialState = () => ({
             board: "all",
             items: []
         },
+        registeredUsers: {
+            open: false,
+            status: "idle",
+            error: null,
+            items: []
+        },
         imageLightbox: {
             open: false,
             image: null,

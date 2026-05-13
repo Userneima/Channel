@@ -1,0 +1,199 @@
+.registered-users-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 46;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.registered-users-dialog__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.42);
+    opacity: 0;
+    transition: opacity 180ms ease;
+}
+
+.registered-users-dialog__panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(36rem, calc(100vw - 2rem));
+    max-height: min(82vh, 42rem);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1.4rem;
+    background: #1d1d1d;
+    box-shadow: 0 28px 72px rgba(0, 0, 0, 0.38);
+    overflow: hidden;
+    transform: translate(-50%, calc(-50% + 1rem)) scale(0.98);
+    opacity: 0;
+    transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.registered-users-dialog.is-open {
+    pointer-events: auto;
+    visibility: visible;
+}
+
+.registered-users-dialog.is-open .registered-users-dialog__backdrop {
+    opacity: 1;
+}
+
+.registered-users-dialog.is-open .registered-users-dialog__panel {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.registered-users-dialog__header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.8rem;
+    align-items: start;
+    padding: 1rem 1rem 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.registered-users-dialog__header-copy {
+    display: grid;
+    gap: 0.16rem;
+}
+
+.registered-users-dialog__header h3,
+.registered-users-dialog__header p {
+    margin: 0;
+}
+
+.registered-users-dialog__header h3 {
+    color: rgba(231, 229, 228, 0.92);
+    font-size: 0.95rem;
+}
+
+.registered-users-dialog__header p,
+.registered-users-dialog__email,
+.registered-users-dialog__meta-label,
+.registered-users-dialog__status,
+.registered-users-dialog__meta-value {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+}
+
+.registered-users-dialog__ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(231, 229, 228, 0.84);
+}
+
+.registered-users-dialog__body {
+    display: grid;
+    gap: 0.62rem;
+    padding: 0.9rem 1rem 1rem;
+    overflow: auto;
+}
+
+.registered-users-dialog__item {
+    display: grid;
+    gap: 0.78rem;
+    padding: 0.84rem 0.88rem;
+    border-radius: 0.95rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.registered-users-dialog__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.72rem;
+    align-items: center;
+}
+
+.registered-users-dialog__avatar {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 999px;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.registered-users-dialog__copy {
+    display: grid;
+    gap: 0.16rem;
+    min-width: 0;
+}
+
+.registered-users-dialog__name {
+    color: rgba(231, 229, 228, 0.92);
+    font-size: 0.88rem;
+}
+
+.registered-users-dialog__email,
+.registered-users-dialog__meta-value {
+    word-break: break-all;
+    line-height: 1.5;
+}
+
+.registered-users-dialog__status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.72rem;
+    padding: 0 0.68rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(231, 229, 228, 0.74);
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.registered-users-dialog__status-badge.is-ready {
+    background: rgba(92, 124, 255, 0.14);
+    color: rgba(231, 229, 228, 0.9);
+}
+
+.registered-users-dialog__meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.registered-users-dialog__meta-block {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.6rem 0.68rem;
+    border-radius: 0.82rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.registered-users-dialog__status {
+    padding: 0.4rem 0.1rem;
+    line-height: 1.5;
+}
+
+.registered-users-dialog__status--error {
+    color: #ffb6b6;
+}
+
+@media (max-width: 640px) {
+    .registered-users-dialog__panel {
+        width: min(100vw - 1rem, 36rem);
+    }
+
+    .registered-users-dialog__row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .registered-users-dialog__status-badge {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .registered-users-dialog__meta-grid {
+        grid-template-columns: 1fr;
+    }
+}
