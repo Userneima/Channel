@@ -210,10 +210,12 @@
 .sidebar-nav__channel-text {
     display: grid;
     min-width: 0;
+    gap: 0.12rem;
 }
 
 .sidebar-nav__channel-name,
-.sidebar-nav__channel-meta {
+.sidebar-nav__channel-meta,
+.sidebar-nav__channel-meta-right {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -221,11 +223,26 @@
 
 .sidebar-nav__channel-name {
     color: var(--color-text);
+    font-size: 0.98rem;
+}
+
+.sidebar-nav__channel-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
 }
 
 .sidebar-nav__channel-meta {
     color: var(--color-text-muted);
     font-size: 0.72rem;
+}
+
+.sidebar-nav__channel-meta-right {
+    color: var(--color-text-muted);
+    font-size: 0.68rem;
+    flex-shrink: 0;
 }
 
 .sidebar-nav__channel-avatar,

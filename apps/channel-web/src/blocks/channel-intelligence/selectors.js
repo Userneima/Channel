@@ -1,6 +1,6 @@
 import { defaultRoundDeadlines, gameBoardStages } from "../../entities/channel/config.js";
 import { isEntryOwnedByIdentity } from "../../shared/lib/anonymous-display.js";
-import { buildChannelMemberOptions, buildRoundDisplayTitle } from "../../features/round/model.js";
+import { buildChannelMemberOptions, buildRoundDisplayTitle, buildRoundPrimaryLabel } from "../../features/round/model.js";
 
 const stageByValue = new Map(gameBoardStages.map((stage) => [stage.value, stage]));
 
@@ -163,8 +163,8 @@ export const selectChannelIntelligenceVM = (state) => {
         : null;
     const archives = rawArchives.map((archive) => ({
         ...archive,
-        displayTitle: buildRoundDisplayTitle({
-            title: archive.title && archive.title !== archive.theme ? archive.title : "",
+        displayTitle: buildRoundPrimaryLabel({
+            title: archive.title,
             defaultTitle: archive.defaultTitle,
             theme: archive.theme,
             completedAt: archive.completedAt,
@@ -181,7 +181,13 @@ export const selectChannelIntelligenceVM = (state) => {
         ? {
             ...selectedArchive,
             ...(selectedArchiveDetail || {}),
-            displayTitle: selectedArchiveDetail?.title || selectedArchive.displayTitle,
+            displayTitle: buildRoundPrimaryLabel({
+                title: selectedArchiveDetail?.title ?? selectedArchive.title,
+                defaultTitle: selectedArchiveDetail?.defaultTitle ?? selectedArchive.defaultTitle,
+                theme: selectedArchiveDetail?.theme ?? selectedArchive.theme,
+                completedAt: selectedArchiveDetail?.completedAt ?? selectedArchive.completedAt,
+                createdAt: selectedArchiveDetail?.createdAt ?? selectedArchive.createdAt
+            }),
             metaLine: buildArchiveMetaLine(selectedArchiveDetail || selectedArchive),
             isRestorable: selectedArchive.isRestorable,
             viewOnlyReason: selectedArchive.viewOnlyReason,

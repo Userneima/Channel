@@ -184,8 +184,10 @@ describe("sidebar nav account menu", () => {
         block.render();
 
         expect(root.textContent).toContain("游戏轮次");
-        expect(root.textContent).toContain("2026.05.13 · 解压");
-        expect(root.textContent).toContain("2026.04.23 · 玄学测试");
+        expect(root.textContent).toContain("解压");
+        expect(root.textContent).toContain("玄学测试");
+        expect(root.textContent).toContain("2026.05.13");
+        expect(root.textContent).toContain("2026.04.23");
 
         root.querySelector("[data-sidebar-round-kind='archive']")?.click();
         await Promise.resolve();

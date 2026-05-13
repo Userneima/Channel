@@ -1,6 +1,24 @@
 import { channelShellConfig } from "../../entities/channel/config.js";
 import { runtimeConfig } from "../../shared/config/runtime-config.js";
-import { buildRoundDisplayTitle } from "../../features/round/model.js";
+import { buildRoundDisplayTitle, buildRoundPrimaryLabel, formatRoundDateLabel } from "../../features/round/model.js";
+
+const buildRoundNavItemCopy = ({
+    title = "",
+    defaultTitle = "",
+    theme = "",
+    startedAt = null,
+    completedAt = null,
+    createdAt = null,
+    statusLabel = ""
+} = {}) => {
+    const dateLabel = formatRoundDateLabel(startedAt || completedAt || createdAt || null);
+
+    return {
+        name: buildRoundPrimaryLabel({ title, defaultTitle, theme, startedAt, completedAt, createdAt }),
+        meta: statusLabel,
+        metaRight: dateLabel
+    };
+};
 
 export const selectSidebarNavVM = (state) => {
     const currentChannel = state.runtimeState.channel;
@@ -19,10 +37,18 @@ export const selectSidebarNavVM = (state) => {
     const roundItems = [];
 
     if (currentChannel) {
+        const currentRoundCopy = buildRoundNavItemCopy({
+            title: state.roundState.title,
+            defaultTitle: state.roundState.defaultTitle,
+            theme: state.roundState.theme,
+            startedAt: state.roundState.startedAt,
+            statusLabel: "当前进行中"
+        });
         roundItems.push({
             id: state.roundState.currentRoundId || "current-round",
-            name: currentRoundTitle,
-            meta: "当前进行中",
+            name: currentRoundCopy.name,
+            meta: currentRoundCopy.meta,
+            metaRight: currentRoundCopy.metaRight,
             badge: "今",
             avatar: currentChannel.logoUrl || channelShellConfig.channelLogo,
             active: !archiveViewerRoundId,
@@ -31,16 +57,19 @@ export const selectSidebarNavVM = (state) => {
     }
 
     (state.roundState.archives || []).forEach((archive) => {
+        const archiveRoundCopy = buildRoundNavItemCopy({
+            title: archive.title && archive.title !== archive.theme ? archive.title : "",
+            defaultTitle: archive.defaultTitle,
+            theme: archive.theme,
+            completedAt: archive.completedAt,
+            createdAt: archive.createdAt,
+            statusLabel: "已归档"
+        });
         roundItems.push({
             id: archive.id,
-            name: buildRoundDisplayTitle({
-                title: archive.title && archive.title !== archive.theme ? archive.title : "",
-                defaultTitle: archive.defaultTitle,
-                theme: archive.theme,
-                completedAt: archive.completedAt,
-                createdAt: archive.createdAt
-            }),
-            meta: "已归档",
+            name: archiveRoundCopy.name,
+            meta: archiveRoundCopy.meta,
+            metaRight: archiveRoundCopy.metaRight,
             badge: "档",
             avatar: currentChannel?.logoUrl || channelShellConfig.channelLogo,
             active: archiveViewerRoundId === archive.id,

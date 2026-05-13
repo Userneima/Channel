@@ -219,6 +219,7 @@ describe("channel intelligence block", () => {
         expect(root.textContent).toContain("往期回合");
         expect(root.textContent).toContain("玄学测试");
         expect(root.textContent).toContain("1 对揭晓");
+        expect(root.textContent).not.toContain("2026.04.23 · 玄学测试");
         expect(root.textContent).not.toContain("希望有人帮我整理玄学学习目录");
 
         root.querySelector("[data-channel-intelligence-archive='archive-1']").click();
@@ -236,6 +237,39 @@ describe("channel intelligence block", () => {
         expect(dialogRoot.textContent).toContain("希望有人帮我整理玄学学习目录");
         expect(dialogRoot.textContent).toContain("删除记录");
         expect(dialogRoot.textContent).toContain("导出备份");
+
+        root.remove();
+        dialogRoot.remove();
+    });
+
+    it("uses the same primary archive title style as the left round navigation", () => {
+        const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
+        document.body.append(root);
+        document.body.append(dialogRoot);
+        const store = createStore();
+        const actions = createActions();
+
+        store.dispatch({
+            type: "round/set-archives",
+            payload: {
+                items: [{
+                    id: "archive-2",
+                    title: "2026.04.23 · 解压",
+                    defaultTitle: "2026.04.23 · 解压",
+                    theme: "解压",
+                    completedAt: "2026-04-23T12:00:00.000Z",
+                    stats: { pairCount: 0 },
+                    revealPairs: []
+                }]
+            }
+        });
+
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
+        block.render();
+
+        expect(root.textContent).toContain("解压");
+        expect(root.textContent).not.toContain("2026.04.23 · 解压");
 
         root.remove();
         dialogRoot.remove();

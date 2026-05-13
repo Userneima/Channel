@@ -70,7 +70,12 @@ export const sidebarNavTemplate = (vm) => `
         : `<div class="sidebar-nav__channel-badge">${escapeHtml(item.badge)}</div>`}
                         <span class="sidebar-nav__channel-text">
                             <span class="sidebar-nav__channel-name">${escapeHtml(item.name)}</span>
-                            ${item.meta ? `<span class="sidebar-nav__channel-meta">${escapeHtml(item.meta)}</span>` : ""}
+                            ${(item.meta || item.metaRight) ? `
+                                <span class="sidebar-nav__channel-meta-row">
+                                    ${item.meta ? `<span class="sidebar-nav__channel-meta">${escapeHtml(item.meta)}</span>` : `<span></span>`}
+                                    ${item.metaRight ? `<span class="sidebar-nav__channel-meta-right">${escapeHtml(item.metaRight)}</span>` : ""}
+                                </span>
+                            ` : ""}
                         </span>
                     </button>
                 `).join("")}

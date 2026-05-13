@@ -52,6 +52,43 @@ export const buildRoundDisplayTitle = ({
     return fallback;
 };
 
+export const buildRoundPrimaryLabel = ({
+    title = "",
+    defaultTitle = "",
+    theme = "",
+    startedAt = null,
+    completedAt = null,
+    createdAt = null,
+    fallback = "未命名主题"
+} = {}) => {
+    const explicitTitle = String(title || "").trim();
+    const normalizedDefaultTitle = String(defaultTitle || "").trim();
+    const normalizedTheme = String(theme || "").trim();
+    const hasCustomTitle = Boolean(
+        explicitTitle
+        && explicitTitle !== normalizedDefaultTitle
+        && explicitTitle !== normalizedTheme
+    );
+
+    if (hasCustomTitle) {
+        return explicitTitle;
+    }
+
+    if (normalizedTheme) {
+        return normalizedTheme;
+    }
+
+    return buildRoundDisplayTitle({
+        title,
+        defaultTitle,
+        theme,
+        startedAt,
+        completedAt,
+        createdAt,
+        fallback
+    });
+};
+
 export const extractRevealTargetName = (body) => {
     const firstLine = String(body || "").split(/\r?\n/, 1)[0]?.trim() || "";
     if (!firstLine.startsWith("@")) {
