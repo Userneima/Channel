@@ -265,4 +265,24 @@ describe("channel feature actions: overlay/ui", () => {
         expect(state.open).toBe(true);
         expect(state.error).toBe("已注册用户目录的数据库权限还没同步完成，请补上最新 migration。");
     });
+
+    it("surfaces the raw operator error when the rpc still fails for another reason", async () => {
+        store.dispatch({
+            type: "auth/set-state",
+            payload: {
+                status: "authenticated",
+                user: { id: "user-1", email: "wyc1186164839@gmail.com" },
+                isAnonymous: false
+            }
+        });
+        dataService.listRegisteredUsers.mockRejectedValue({
+            message: "relation auth.users does not exist"
+        });
+
+        await actions.openRegisteredUsersDialog();
+
+        const state = store.getState().overlayState.registeredUsers;
+        expect(state.open).toBe(true);
+        expect(state.error).toBe("已注册用户列表加载失败：relation auth.users does not exist");
+    });
 });

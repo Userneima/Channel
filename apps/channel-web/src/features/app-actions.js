@@ -280,7 +280,12 @@ export const createAppActions = ({ store, dataService }) => {
                     payload: { items }
                 });
             } catch (error) {
-                const message = getChannelActionErrorMessage("load_registered_users", error);
+                const fallbackMessage = "已注册用户列表加载失败，请稍后重试。";
+                const mappedMessage = getChannelActionErrorMessage("load_registered_users", error);
+                const rawMessage = String(error?.message || "").trim();
+                const message = mappedMessage === fallbackMessage && rawMessage
+                    ? `已注册用户列表加载失败：${rawMessage}`
+                    : mappedMessage;
                 store.dispatch({
                     type: "registered-users/load-error",
                     payload: { error: message }
