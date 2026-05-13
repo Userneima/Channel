@@ -67,9 +67,13 @@ export const selectComposerPanelVM = (state) => {
     const audioRecording = state.composerState.audioRecording;
     const authStatus = state.authState.status;
     const membershipStatus = state.membershipState.status;
+    const isMembershipHydrating = authStatus === "authenticated"
+        && membershipStatus === "unknown"
+        && state.runtimeState.phase === "hydrating";
     const isReadOnlyRound = Boolean(state.roundState.archiveViewerRoundId) || state.roundState.lifecycleStatus === "archived";
     const canCompose = !isReadOnlyRound && membershipStatus === "approved" && authStatus === "authenticated";
-    const canManageRound = ["owner", "admin"].includes(state.runtimeState.realIdentity.role);
+    const canManageRound = membershipStatus === "approved"
+        && ["owner", "admin"].includes(state.runtimeState.realIdentity.role);
     const isCurrentGod = (
         state.roundState.godProfile?.userId
             ? state.roundState.godProfile.userId === state.authState.user?.id
@@ -99,7 +103,34 @@ export const selectComposerPanelVM = (state) => {
                 primaryLabel: "继续升级",
                 primaryAction: "open-auth-upgrade"
             }
-            : membershipStatus === "guest"
+            : membershipStatus === "pending"
+                ? {
+                    accessMode: "pending",
+                    title: "加入申请审核中",
+                    description: "管理员通过后，你就能正常发帖和评论。",
+                    placeholder: "等待管理员审核通过后即可发内容",
+                    primaryLabel: "",
+                    primaryAction: ""
+                }
+                : membershipStatus === "rejected"
+                    ? {
+                        accessMode: "rejected",
+                        title: "加入申请未通过",
+                        description: "可以修改申请说明后重新提交。",
+                        placeholder: "当前还不能发内容",
+                        primaryLabel: "重新申请加入",
+                        primaryAction: "submit-join-request"
+                    }
+                    : isMembershipHydrating
+                        ? {
+                            accessMode: "syncing",
+                            title: "正在进入频道",
+                            description: "成员身份正在同步，通常刷新后就会恢复可编辑状态。",
+                            placeholder: "正在同步频道身份，暂时无法发内容",
+                            primaryLabel: "",
+                            primaryAction: ""
+                        }
+                        : membershipStatus !== "approved"
                 ? {
                     accessMode: "join",
                     title: "还没进入频道",
@@ -110,32 +141,7 @@ export const selectComposerPanelVM = (state) => {
                     primaryLabel: currentChannel?.joinPolicy === "open" ? "重新进入频道" : "申请加入",
                     primaryAction: "submit-join-request"
                 }
-                : membershipStatus === "pending"
-                    ? {
-                        accessMode: "pending",
-                        title: "加入申请审核中",
-                        description: "管理员通过后，你就能正常发帖和评论。",
-                        placeholder: "等待管理员审核通过后即可发内容",
-                        primaryLabel: "",
-                        primaryAction: ""
-                    }
-                    : membershipStatus === "rejected"
-                        ? {
-                            accessMode: "rejected",
-                            title: "加入申请未通过",
-                            description: "可以修改申请说明后重新提交。",
-                            placeholder: "当前还不能发内容",
-                            primaryLabel: "重新申请加入",
-                            primaryAction: "submit-join-request"
-                        }
-                        : {
-                            accessMode: "syncing",
-                            title: "正在进入频道",
-                            description: "成员身份正在同步，通常刷新后就会恢复可编辑状态。",
-                            placeholder: "正在同步频道身份，暂时无法发内容",
-                            primaryLabel: "",
-                            primaryAction: ""
-                        };
+                    : null;
     const readOnlyGate = {
         accessMode: "readonly",
         title: state.roundState.archiveViewerRoundId ? "当前是历史归档" : "当前回合已经归档",

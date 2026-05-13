@@ -96,6 +96,39 @@ describe("channel view model selectors: composer/feed", () => {
         expect(vm.gate.primaryLabel).toBe("重新进入频道");
     });
 
+    it("keeps the syncing hint only during runtime hydration", () => {
+        const state = createInitialState();
+        state.authState.status = "authenticated";
+        state.authState.user = { id: "user-1", email: "member@example.com" };
+        state.membershipState.status = "unknown";
+        state.runtimeState.phase = "hydrating";
+
+        const vm = selectComposerPanelVM(state);
+
+        expect(vm.canCompose).toBe(false);
+        expect(vm.gate.accessMode).toBe("syncing");
+    });
+
+    it("falls back to a rejoin action after hydration if membership never resolved", () => {
+        const state = createInitialState();
+        state.authState.status = "authenticated";
+        state.authState.user = { id: "user-1", email: "member@example.com" };
+        state.membershipState.status = "unknown";
+        state.runtimeState.phase = "ready";
+        state.runtimeState.channel = {
+            id: "channel-1",
+            slug: "channel",
+            name: "频道",
+            joinPolicy: "open"
+        };
+
+        const vm = selectComposerPanelVM(state);
+
+        expect(vm.canCompose).toBe(false);
+        expect(vm.gate.accessMode).toBe("join");
+        expect(vm.gate.primaryLabel).toBe("重新进入频道");
+    });
+
     it("maps feed state into empty and ready states", () => {
         const emptyState = createInitialState();
         emptyState.feedState.status = "empty";

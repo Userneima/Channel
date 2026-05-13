@@ -35,8 +35,10 @@ export const selectChannelMenuDialogVM = (state) => ({
     logoUrl: state.runtimeState.channel?.logoUrl || channelShellConfig.channelLogo,
     identityName: state.runtimeState.realIdentity.name,
     identityAvatar: state.runtimeState.realIdentity.avatar,
-    canManageAnonymous: ["owner", "admin"].includes(state.runtimeState.realIdentity.role),
-    canManageChannel: ["owner", "admin"].includes(state.runtimeState.realIdentity.role),
+    canManageAnonymous: state.membershipState.status === "approved"
+        && ["owner", "admin"].includes(state.runtimeState.realIdentity.role),
+    canManageChannel: state.membershipState.status === "approved"
+        && ["owner", "admin"].includes(state.runtimeState.realIdentity.role),
     canViewRegisteredUsers: state.authState.status === "authenticated"
         && isPlatformOperatorEmail(state.authState.user?.email),
     adminRevealAnonymous: state.uiState.adminRevealAnonymous

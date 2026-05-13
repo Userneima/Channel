@@ -74,6 +74,7 @@ describe("channel view model selectors: comments/overlays", () => {
         const state = createInitialState();
         state.authState.status = "authenticated";
         state.membershipState.status = "approved";
+        state.runtimeState.realIdentity.role = "owner";
         state.overlayState.comments.open = true;
         state.overlayState.comments.status = "ready";
         state.overlayState.comments.post = {
@@ -176,5 +177,20 @@ describe("channel view model selectors: comments/overlays", () => {
 
         state.authState.user.email = "member@example.com";
         expect(selectChannelMenuDialogVM(state).canViewRegisteredUsers).toBe(false);
+    });
+
+    it("does not expose channel management toggles before approved membership is ready", () => {
+        const state = createInitialState();
+        state.authState.status = "authenticated";
+        state.authState.user = {
+            id: "user-1",
+            email: "owner@example.com"
+        };
+        state.membershipState.status = "unknown";
+        state.runtimeState.realIdentity.role = "owner";
+
+        const vm = selectChannelMenuDialogVM(state);
+        expect(vm.canManageAnonymous).toBe(false);
+        expect(vm.canManageChannel).toBe(false);
     });
 });

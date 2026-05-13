@@ -33,6 +33,40 @@ const createActions = () => ({
     exitArchiveViewer: vi.fn()
 });
 
+const setApprovedOwnerContext = (store) => {
+    store.dispatch({
+        type: "auth/set-state",
+        payload: {
+            status: "authenticated",
+            user: { id: "user-1", email: "owner@example.com" }
+        }
+    });
+    store.dispatch({
+        type: "membership/set-state",
+        payload: {
+            status: "approved",
+            joinRequest: null,
+            reviewItems: [],
+            directoryItems: [],
+            directoryStatus: "idle",
+            directoryError: null,
+            mutationStatus: "idle",
+            activeMemberId: null,
+            reviewStatus: "idle",
+            submitStatus: "idle",
+            error: null
+        }
+    });
+    store.dispatch({
+        type: "runtime/update-identity",
+        payload: {
+            identity: {
+                role: "owner"
+            }
+        }
+    });
+};
+
 describe("channel intelligence block", () => {
     it("preserves theme input focus across rerenders", () => {
         const root = document.createElement("div");
@@ -42,6 +76,7 @@ describe("channel intelligence block", () => {
         const store = createStore();
         const actions = createActions();
 
+        setApprovedOwnerContext(store);
         store.dispatch({
             type: "round-management/set-field",
             payload: {
@@ -86,13 +121,35 @@ describe("channel intelligence block", () => {
         block.render();
 
         expect(root.textContent).toContain("当前回合");
-        expect(root.textContent).toContain("改轮次名");
         expect(root.textContent).not.toContain("国王与天使");
         expect(root.textContent).toContain("本周上帝");
-        expect(root.textContent).toContain("指定上帝");
         expect(root.textContent).toContain("当前阶段");
         expect(root.textContent).toContain("我的待办");
         expect(root.textContent).not.toContain("进入回合管理");
+        expect(root.textContent).not.toContain("改轮次名");
+        expect(root.textContent).not.toContain("指定上帝");
+        expect(root.textContent).not.toContain("设定主题");
+
+        root.remove();
+        dialogRoot.remove();
+    });
+
+    it("shows round management controls only for approved admins", () => {
+        const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
+        document.body.append(root);
+        document.body.append(dialogRoot);
+        const store = createStore();
+        const actions = createActions();
+
+        setApprovedOwnerContext(store);
+
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
+        block.render();
+
+        expect(root.textContent).toContain("改轮次名");
+        expect(root.textContent).toContain("指定上帝");
+        expect(root.textContent).toContain("设定主题");
 
         root.remove();
         dialogRoot.remove();
@@ -106,14 +163,7 @@ describe("channel intelligence block", () => {
         const store = createStore();
         const actions = createActions();
 
-        store.dispatch({
-            type: "runtime/update-identity",
-            payload: {
-                identity: {
-                    role: "owner"
-                }
-            }
-        });
+        setApprovedOwnerContext(store);
         store.dispatch({
             type: "round/set-current-round",
             payload: {
@@ -182,6 +232,7 @@ describe("channel intelligence block", () => {
         const store = createStore();
         const actions = createActions();
 
+        setApprovedOwnerContext(store);
         store.dispatch({
             type: "round/set-archives",
             payload: {
@@ -283,14 +334,7 @@ describe("channel intelligence block", () => {
         const store = createStore();
         const actions = createActions();
 
-        store.dispatch({
-            type: "runtime/update-identity",
-            payload: {
-                identity: {
-                    role: "owner"
-                }
-            }
-        });
+        setApprovedOwnerContext(store);
 
         const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
@@ -325,6 +369,7 @@ describe("channel intelligence block", () => {
         const store = createStore();
         const actions = createActions();
 
+        setApprovedOwnerContext(store);
         store.dispatch({
             type: "round/set-archives",
             payload: {

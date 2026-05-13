@@ -148,7 +148,8 @@ export const selectChannelIntelligenceVM = (state) => {
     const godProfile = state.roundState.godProfile;
     const currentTheme = String(state.roundState.theme || "").trim();
     const role = state.runtimeState.realIdentity.role;
-    const canManageRound = ["owner", "admin"].includes(role);
+    const canManageRound = state.membershipState.status === "approved"
+        && ["owner", "admin"].includes(role);
     const isArchivedCurrentRound = state.roundState.lifecycleStatus === "archived";
     const canEditTheme = !isArchivedCurrentRound && (canManageRound || state.runtimeState.realIdentity.name === godProfile?.name);
     const godOptions = buildChannelMemberOptions(state);

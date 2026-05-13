@@ -1,9 +1,9 @@
 export const defaultRealIdentity = {
     id: null,
     avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuAdn4SXXvi49UKFKBuOYSU69PaV_4engMSiIUkQpcH9Dq-zjinv9rRqNzjFK-_KuzU2Gr6HOfI2OZ-01V7rzVGIWaSyOPbg9Q5rsFMfV-JXcD32yqlps9leknFzregRkqtJVBZWeZ3TJKaExBlvUeO_2F-5IORdrpgxMw4eRaXxtuOmsn0ulMBWYOK6FZtBAis0lvg3BKhmbjcDhTRygvyVEKb6zY2afnZACw8KV6nqOp9MLhO7nLBMaFoVtMhyjFLpOuFQrJB8wuI",
-    name: "管理员",
+    name: "当前账号",
     meta: "当前真实身份",
-    role: "owner"
+    role: null
 };
 
 export const defaultAnonymousProfiles = [
