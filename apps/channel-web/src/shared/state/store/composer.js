@@ -10,6 +10,7 @@ export const applyComposerActions = (draft, action) => {
         draft.composerState.expanded = false;
         draft.composerState.aiDisclosureOpen = false;
         draft.composerState.mentionOpen = false;
+        draft.composerState.proxyWishOpen = false;
         return true;
     case "composer/add-images":
         draft.composerState.images.push(...action.payload.images.map((image) => ({ ...image })));
@@ -40,6 +41,7 @@ export const applyComposerActions = (draft, action) => {
         draft.composerState.audioDraft = null;
         draft.composerState.audioRecording = false;
         draft.composerState.mentionTarget = null;
+        draft.composerState.proxyWishTarget = null;
         draft.composerState.aiDisclosure = "none";
         draft.composerState.board = "none";
         draft.composerState.anonymousTextRewrite = false;
@@ -50,6 +52,7 @@ export const applyComposerActions = (draft, action) => {
         draft.composerState.submitStatus = "idle";
         draft.composerState.error = null;
         draft.composerState.mentionOpen = false;
+        draft.composerState.proxyWishOpen = false;
         draft.composerState.aiDisclosureOpen = false;
         draft.composerState.boardOpen = false;
         return true;

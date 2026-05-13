@@ -21,6 +21,16 @@ const buildThemeEditor = (vm) => `
     </div>
 `;
 
+const buildDeadlineEditor = (vm) => `
+    <div class="channel-intelligence__theme-editor ${vm.wishDeadlineEditorOpen ? "is-open" : ""}">
+        <input class="channel-intelligence__theme-input" data-channel-intelligence-ref="wish-deadline-input" type="datetime-local" value="${escapeHtml(vm.wishDeadlineDraftValue)}" />
+        <div class="channel-intelligence__theme-actions">
+            <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="cancel-deadline" type="button">取消</button>
+            <button class="channel-intelligence__action-button" data-channel-intelligence-action="save-deadline" type="button">保存截止</button>
+        </div>
+    </div>
+`;
+
 const buildRevealSummary = (vm) => `
     <div class="channel-intelligence__reveal-block">
         <div class="channel-intelligence__round-row is-with-action">
@@ -236,10 +246,17 @@ export const channelIntelligenceTemplate = (vm) => `
                     <span class="channel-intelligence__round-label">当前阶段</span>
                     <div class="channel-intelligence__round-value">${escapeHtml(vm.currentStageLabel)}</div>
                 </div>
-                <div class="channel-intelligence__round-row">
-                    <span class="channel-intelligence__round-label">截止时间</span>
-                    <div class="channel-intelligence__round-value">${escapeHtml(vm.currentDeadlineLabel)}</div>
+                <div class="channel-intelligence__round-row ${vm.canManageRound ? "is-with-action" : ""}">
+                    <div class="channel-intelligence__round-copy">
+                        <span class="channel-intelligence__round-label">许愿截止</span>
+                        <div class="channel-intelligence__round-value">${escapeHtml(vm.wishDeadlineDisplay)}</div>
+                        <div class="channel-intelligence__round-meta">${escapeHtml(vm.wishDeadlineRelativeLabel)}</div>
+                    </div>
+                    ${vm.canManageRound ? `
+                        <button class="channel-intelligence__action-button is-quiet" data-channel-intelligence-action="toggle-deadline-editor" type="button">${escapeHtml(vm.wishDeadlineButtonLabel)}</button>
+                    ` : ""}
                 </div>
+                ${vm.canManageRound ? buildDeadlineEditor(vm) : ""}
                 ${vm.canManageRound ? `
                     <div class="channel-intelligence__round-actions">
                         <button class="channel-intelligence__action-button ${vm.canArchiveRound ? "" : "is-disabled"}" data-channel-intelligence-action="archive-current-round" ${vm.canArchiveRound ? "" : "disabled"} type="button">归档本轮</button>

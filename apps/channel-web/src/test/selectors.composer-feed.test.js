@@ -221,4 +221,39 @@ describe("channel view model selectors: composer/feed", () => {
         expect(vm.revealResult?.actualName).toBe("海屿");
         expect(vm.revealPairs).toHaveLength(1);
     });
+
+    it("exposes proxy wish controls to the current god during wish stage", () => {
+        const state = createInitialState();
+        state.authState.status = "authenticated";
+        state.authState.user = { id: "user-god" };
+        state.membershipState.status = "approved";
+        state.roundState.activeStage = "wish";
+        state.feedState.activeBoard = "wish";
+        state.runtimeState.realIdentity = {
+            ...state.runtimeState.realIdentity,
+            id: "identity-god",
+            name: "章鱼烧",
+            avatar: "octopus-avatar",
+            role: "member"
+        };
+        state.roundState.godProfile = {
+            userId: "user-god",
+            name: "章鱼烧",
+            avatar: "octopus-avatar"
+        };
+        state.roundState.memberStatuses = [
+            { identityId: "identity-god", userId: "user-god", name: "章鱼烧", avatar: "octopus-avatar", wishSubmitted: true },
+            { identityId: "identity-2", userId: "user-2", name: "测试账号", avatar: "test-avatar", wishSubmitted: false }
+        ];
+
+        const vm = selectComposerPanelVM(state);
+
+        expect(vm.canProxyWish).toBe(true);
+        expect(vm.proxyWishMembers).toEqual([{
+            identityId: "identity-2",
+            userId: "user-2",
+            name: "测试账号",
+            avatar: "test-avatar"
+        }]);
+    });
 });

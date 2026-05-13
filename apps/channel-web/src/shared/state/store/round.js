@@ -51,7 +51,11 @@ export const applyRoundActions = (draft, action) => {
                     avatar: draft.roundState.guessSelection.avatar || ""
                 }
                 : null;
+        if (action.payload.stage !== "wish") {
+            draft.composerState.proxyWishTarget = null;
+        }
         draft.composerState.mentionOpen = false;
+        draft.composerState.proxyWishOpen = false;
         if (action.payload.forceAnonymous) {
             draft.composerState.anonymousMode = true;
             draft.composerState.aiDisclosure = "none";

@@ -69,7 +69,12 @@ export const buildWishPreviewByMemberName = (posts) => {
         .sort((left, right) => Date.parse(right.createdAt || 0) - Date.parse(left.createdAt || 0));
 
     orderedPosts.forEach((post) => {
-        const memberName = String(post.authorName || "").trim();
+        const memberName = String(
+            post.wishMeta?.participantName
+            || post.adminRevealIdentity?.name
+            || post.authorName
+            || ""
+        ).trim();
         if (!memberName || previewByMemberName.has(memberName)) {
             return;
         }
@@ -391,6 +396,8 @@ export const findCurrentMemberStatus = (state) => {
         || memberStatuses.find((item) => item.name === state.runtimeState.realIdentity.name)
         || null;
 };
+
+export const isCurrentRoundParticipant = (state) => Boolean(findCurrentMemberStatus(state)?.wishSubmitted);
 
 export const getRoundDeadlinesForSave = (state) => ({
     ...Object.fromEntries(

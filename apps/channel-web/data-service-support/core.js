@@ -360,6 +360,29 @@ const extractDeliveryMeta = (media) => {
     };
 };
 
+const extractWishMeta = (media) => {
+    const items = Array.isArray(media) ? media : [];
+    const wishEntry = items.find((item) => item && typeof item === "object" && String(item.kind || "").trim().toLowerCase() === "wish_meta");
+    if (!wishEntry) {
+        return null;
+    }
+
+    const participantName = String(wishEntry.participantName || "").trim();
+    const participantUserId = String(wishEntry.participantUserId || "").trim() || null;
+    if (!participantName && !participantUserId) {
+        return null;
+    }
+
+    return {
+        participantUserId,
+        participantName: participantName || "频道成员",
+        participantAvatar: String(wishEntry.participantAvatar || "").trim(),
+        submissionSource: String(wishEntry.submissionSource || "self").trim() || "self",
+        recordedByUserId: String(wishEntry.recordedByUserId || "").trim() || null,
+        recordedByName: String(wishEntry.recordedByName || "").trim()
+    };
+};
+
 const extractRoundArchiveMeta = (media) => {
     const items = Array.isArray(media) ? media : [];
     const archiveEntry = items.find((item) => item && typeof item === "object" && String(item.kind || "").trim().toLowerCase() === "round_archive");
@@ -619,10 +642,19 @@ const normalizePostRow = (postRow) => {
     const isDeleted = Boolean(postRow.deleted_at);
     const media = normalizePostMedia(postRow.media);
     const deliveryMeta = extractDeliveryMeta(postRow.media);
+    const wishMeta = extractWishMeta(postRow.media);
     const roundArchive = extractRoundArchiveMeta(postRow.media);
     const comments = [...(postRow.comments || [])]
         .sort((left, right) => Date.parse(left.created_at) - Date.parse(right.created_at))
         .map(normalizeCommentRow);
+    const wishParticipantRevealIdentity = wishMeta?.participantName
+        ? {
+            id: wishMeta.participantUserId || null,
+            name: wishMeta.participantName,
+            avatar: wishMeta.participantAvatar || "",
+            role: "member"
+        }
+        : null;
 
     return {
         id: postRow.id,
@@ -650,7 +682,9 @@ const normalizePostRow = (postRow) => {
         shares: isDeleted ? 0 : postRow.shares_count,
         comments,
         aiDisclosure: isDeleted ? "none" : (postRow.ai_disclosure || "none"),
-        adminRevealIdentity: author.real_identity
+        adminRevealIdentity: postRow.board_slug === "wish" && wishParticipantRevealIdentity
+            ? wishParticipantRevealIdentity
+            : author.real_identity
             ? {
                 id: author.real_identity.id || null,
                 name: author.real_identity.displayName || "频道成员",
@@ -659,6 +693,7 @@ const normalizePostRow = (postRow) => {
             }
             : getAdminRevealIdentity(postRow.alias_session, postRow.media),
         deliveryMeta,
+        wishMeta,
         roundArchive,
         authorSnapshot: normalizeAuthorSnapshot(postRow.author_snapshot)
     };
@@ -850,6 +885,7 @@ const cloneCachedPost = (post) => ({
     images: [...(post.images || [])],
     audioClips: [...(post.audioClips || [])],
     deliveryMeta: post.deliveryMeta ? { ...post.deliveryMeta } : null,
+    wishMeta: post.wishMeta ? { ...post.wishMeta } : null,
     roundArchive: post.roundArchive
         ? {
             ...post.roundArchive,

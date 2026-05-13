@@ -10,6 +10,7 @@ import {
     revokeComposerAudioDraft,
     revokeImageDrafts
 } from "../../shared/lib/helpers.js";
+import { findCurrentMemberStatus } from "../round/model.js";
 
 const ensureApprovedMember = (store, onGuest, onUnapproved) => {
     const state = store.getState();
@@ -182,7 +183,18 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
         store.dispatch({
             type: "composer/set-field",
             payload: {
-                mentionOpen: !mentionOpen
+                mentionOpen: !mentionOpen,
+                proxyWishOpen: false
+            }
+        });
+    },
+    toggleProxyWishMenu() {
+        const { proxyWishOpen } = store.getState().composerState;
+        store.dispatch({
+            type: "composer/set-field",
+            payload: {
+                proxyWishOpen: !proxyWishOpen,
+                mentionOpen: false
             }
         });
     },
@@ -194,6 +206,17 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
             type: "composer/set-field",
             payload: {
                 mentionOpen: false
+            }
+        });
+    },
+    closeProxyWishMenu() {
+        if (!store.getState().composerState.proxyWishOpen) {
+            return;
+        }
+        store.dispatch({
+            type: "composer/set-field",
+            payload: {
+                proxyWishOpen: false
             }
         });
     },
@@ -213,6 +236,20 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                     avatar: member.avatar || ""
                 } : null,
                 mentionOpen: false
+            }
+        });
+    },
+    selectProxyWishTarget(member) {
+        store.dispatch({
+            type: "composer/set-field",
+            payload: {
+                proxyWishTarget: member ? {
+                    name: member.name,
+                    avatar: member.avatar || "",
+                    userId: member.userId || null,
+                    identityId: member.identityId || null
+                } : null,
+                proxyWishOpen: false
             }
         });
     },
@@ -249,6 +286,15 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
             payload: {
                 mentionTarget: null,
                 mentionOpen: false
+            }
+        });
+    },
+    clearProxyWishTarget() {
+        store.dispatch({
+            type: "composer/set-field",
+            payload: {
+                proxyWishTarget: null,
+                proxyWishOpen: false
             }
         });
     },
@@ -475,6 +521,8 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                 : (["wish", "delivery"].includes(activeStage) ? true : state.composerState.anonymousMode);
             const claimSelection = state.roundState.claimSelection;
             const guessSelection = state.roundState.guessSelection;
+            const currentMemberStatus = findCurrentMemberStatus(state);
+            const proxyWishTarget = effectiveBoard === "wish" ? state.composerState.proxyWishTarget : null;
             const mentionTarget = effectiveBoard === "delivery"
                 ? (claimSelection
                     ? {
@@ -493,6 +541,17 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                             : null)
                     )
                     : null;
+            if (["delivery", "guess"].includes(effectiveBoard) && currentMemberStatus && !currentMemberStatus.wishSubmitted) {
+                store.dispatch({
+                    type: "composer/submit-error",
+                    payload: { error: new Error("这轮后续流程只对已许愿成员开放。") }
+                });
+                showToast({
+                    tone: "info",
+                    message: "你这轮还没入场。需要的话可以让上帝先代你补录愿望。"
+                });
+                return;
+            }
             if (effectiveBoard === "delivery" && !claimSelection?.postId) {
                 store.dispatch({
                     type: "composer/submit-error",
@@ -565,6 +624,15 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                     targetMemberAvatar: claimSelection.authorAvatar || ""
                 }
                 : null;
+            const wishMeta = effectiveBoard === "wish"
+                ? {
+                    kind: "wish_meta",
+                    participantUserId: proxyWishTarget?.userId || state.authState.user?.id || null,
+                    participantName: proxyWishTarget?.name || state.runtimeState.realIdentity.name,
+                    participantAvatar: proxyWishTarget?.avatar || state.runtimeState.realIdentity.avatar || "",
+                    submissionSource: proxyWishTarget ? "proxy" : "self"
+                }
+                : null;
             const publishedImages = anonymousMode
                 ? (
                     shouldAiReshapeImages && anonymizedDraft?.images?.length === images.length
@@ -579,6 +647,7 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
             const post = await dataService.publishPost({
                 body: publishedBody || (publishedAudio ? "分享一段语音" : "分享一张图片"),
                 media: [
+                    ...(wishMeta ? [wishMeta] : []),
                     ...(deliveryMeta ? [deliveryMeta] : []),
                     ...publishedImages,
                     ...(publishedAudio ? [publishedAudio] : [])
@@ -629,6 +698,8 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                 tone: "success",
                 message: effectiveBoard === "delivery"
                     ? "交付已提交，已切到猜测阶段。"
+                    : effectiveBoard === "wish" && proxyWishTarget
+                        ? `已代 ${proxyWishTarget.name} 记录愿望。`
                     : anonymousMode
                         ? "匿名帖子已发送。"
                         : "帖子已发送。"

@@ -349,4 +349,76 @@ describe("channel feature actions: composer/round", () => {
         expect(dataService.updateChannelRoundState).toHaveBeenCalled();
         expect(store.getState().roundState.revealMap.章鱼烧.angel.name).toBe("海屿");
     });
+
+    it("allows the current god to proxy-record a wish for another member", async () => {
+        seedApprovedViewer(store);
+        store.dispatch({
+            type: "round/set-stage",
+            payload: { stage: "wish", forceAnonymous: true }
+        });
+        store.dispatch({
+            type: "feed/set-board",
+            payload: { board: "wish" }
+        });
+        store.dispatch({
+            type: "round/set-god",
+            payload: {
+                godProfile: {
+                    userId: "user-1",
+                    name: "章鱼烧",
+                    avatar: "avatar"
+                }
+            }
+        });
+        store.dispatch({
+            type: "round/set-member-statuses",
+            payload: {
+                items: [
+                    {
+                        identityId: "identity-1",
+                        userId: "user-1",
+                        name: "章鱼烧",
+                        avatar: "avatar",
+                        wishSubmitted: true
+                    },
+                    {
+                        identityId: "identity-2",
+                        userId: "user-2",
+                        name: "海屿",
+                        avatar: "haiyu-avatar",
+                        wishSubmitted: false
+                    }
+                ]
+            }
+        });
+        store.dispatch({
+            type: "composer/set-field",
+            payload: {
+                draftText: "代他补录一个愿望",
+                proxyWishTarget: {
+                    identityId: "identity-2",
+                    userId: "user-2",
+                    name: "海屿",
+                    avatar: "haiyu-avatar"
+                }
+            }
+        });
+        dataService.publishPost.mockResolvedValue({ id: "wish-proxy-1", board: "wish", comments: [] });
+        dataService.listPosts.mockResolvedValue([{ id: "wish-proxy-1", board: "wish", comments: [] }]);
+
+        await actions.submitPost();
+
+        expect(dataService.publishPost).toHaveBeenCalledWith(expect.objectContaining({
+            boardSlug: "wish",
+            media: expect.arrayContaining([
+                expect.objectContaining({
+                    kind: "wish_meta",
+                    participantUserId: "user-2",
+                    participantName: "海屿",
+                    submissionSource: "proxy"
+                })
+            ])
+        }));
+        expect(store.getState().overlayState.toast.message).toBe("已代 海屿 记录愿望。");
+    });
 });

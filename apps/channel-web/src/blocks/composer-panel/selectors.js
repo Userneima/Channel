@@ -69,6 +69,13 @@ export const selectComposerPanelVM = (state) => {
     const membershipStatus = state.membershipState.status;
     const isReadOnlyRound = Boolean(state.roundState.archiveViewerRoundId) || state.roundState.lifecycleStatus === "archived";
     const canCompose = !isReadOnlyRound && membershipStatus === "approved" && authStatus === "authenticated";
+    const canManageRound = ["owner", "admin"].includes(state.runtimeState.realIdentity.role);
+    const isCurrentGod = (
+        state.roundState.godProfile?.userId
+            ? state.roundState.godProfile.userId === state.authState.user?.id
+            : state.roundState.godProfile?.name === state.runtimeState.realIdentity.name
+    );
+    const canProxyWish = canCompose && stage.value === "wish" && (canManageRound || isCurrentGod);
     const guestIdentityDisplay = {
         avatar: currentChannel?.logoUrl || channelShellConfig.channelLogo,
         name: "未登录",
@@ -116,12 +123,27 @@ export const selectComposerPanelVM = (state) => {
             onlyWishParticipants: true
         })
         : buildChannelMemberOptions(state);
+    const proxyWishMembers = canProxyWish
+        ? (state.roundState.memberStatuses || [])
+            .filter((member) => (
+                member?.userId
+                && !member?.wishSubmitted
+                && member.userId !== state.authState.user?.id
+            ))
+            .map((member) => ({
+                name: member.name,
+                avatar: member.avatar || "",
+                userId: member.userId || null,
+                identityId: member.identityId || null
+            }))
+        : [];
     const revealPairs = buildRevealPairs(state.roundState.revealMap);
     const revealResult = buildRevealResult({
         revealMap: state.roundState.revealMap,
         memberName: state.runtimeState.realIdentity.name,
         guessSelection
     });
+    const proxyWishTarget = stage.value === "wish" ? state.composerState.proxyWishTarget : null;
     const anonymousPreviewSourceMatches = state.composerState.anonymousPreviewSourceText === draftText.trim();
     const anonymousPreviewDisplayText = anonymousPreviewSourceMatches && state.composerState.anonymousPreviewText
         ? state.composerState.anonymousPreviewText
@@ -144,6 +166,10 @@ export const selectComposerPanelVM = (state) => {
         mentionMembers: availableMentionMembers,
         canChooseMentionTarget,
         mentionTitle: stage.value === "guess" ? "你猜的是谁" : "实现谁的愿望",
+        proxyWishTarget,
+        proxyWishOpen: canProxyWish ? state.composerState.proxyWishOpen : false,
+        proxyWishMembers,
+        canProxyWish,
         charCount: draftText.length,
         aiDisclosure: state.composerState.aiDisclosure,
         aiDisclosureChoices,
@@ -180,7 +206,9 @@ export const selectComposerPanelVM = (state) => {
                 name: state.runtimeState.realIdentity.name,
                 meta: state.runtimeState.realIdentity.meta
             },
-        placeholder: stage.placeholder || (anonymousMode ? composerIdentityPresets.anonymousPlaceholder : composerIdentityPresets.defaultPlaceholder),
+        placeholder: proxyWishTarget
+            ? `以匿名方式代 ${proxyWishTarget.name} 记录这周愿望...`
+            : stage.placeholder || (anonymousMode ? composerIdentityPresets.anonymousPlaceholder : composerIdentityPresets.defaultPlaceholder),
         collapsedSummary: draftText.trim()
             ? draftText.trim().slice(0, 72)
             : images.length

@@ -14,12 +14,24 @@ export const attachChannelIntelligenceEvents = ({ root, roots = [], actions }) =
                     actions.toggleRoundThemeEditor();
                     return;
                 }
+                if (action === "toggle-deadline-editor") {
+                    actions.toggleRoundDeadlineEditor();
+                    return;
+                }
                 if (action === "cancel-theme") {
                     actions.cancelRoundThemeEditing();
                     return;
                 }
+                if (action === "cancel-deadline") {
+                    actions.cancelRoundDeadlineEditing();
+                    return;
+                }
                 if (action === "save-theme") {
                     actions.saveRoundTheme();
+                    return;
+                }
+                if (action === "save-deadline") {
+                    void actions.saveRoundDeadlines();
                     return;
                 }
                 if (action === "toggle-reveal-editor") {
@@ -116,11 +128,15 @@ export const attachChannelIntelligenceEvents = ({ root, roots = [], actions }) =
 
         target.addEventListener("input", (event) => {
             const input = event.target.closest("[data-channel-intelligence-ref='theme-input']");
-            if (!input) {
+            if (input) {
+                actions.setRoundThemeDraft(input.value);
                 return;
             }
 
-            actions.setRoundThemeDraft(input.value);
+            const deadlineInput = event.target.closest("[data-channel-intelligence-ref='wish-deadline-input']");
+            if (deadlineInput) {
+                actions.setRoundDeadlineDraft("wish", deadlineInput.value);
+            }
         });
     };
 

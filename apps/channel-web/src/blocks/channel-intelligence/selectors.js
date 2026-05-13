@@ -77,6 +77,62 @@ const getDeadlineLabel = (deadline, fallback = "") => (
         : String(deadline || fallback || "").trim()
 );
 
+const parseDeadline = (value) => {
+    const timestamp = Date.parse(value || "");
+    return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const formatAbsoluteDeadline = (value) => {
+    const timestamp = parseDeadline(value);
+    if (!timestamp) {
+        return "还没设置";
+    }
+
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+};
+
+const formatRelativeDeadline = (value) => {
+    const timestamp = parseDeadline(value);
+    if (!timestamp) {
+        return "设置后系统会自动锁定本轮参与名单。";
+    }
+
+    const diffMs = timestamp - Date.now();
+    const absMinutes = Math.max(1, Math.round(Math.abs(diffMs) / (60 * 1000)));
+    if (absMinutes < 60) {
+        return diffMs >= 0 ? `还剩 ${absMinutes} 分钟` : `已超时 ${absMinutes} 分钟`;
+    }
+
+    const absHours = Math.max(1, Math.round(absMinutes / 60));
+    if (absHours < 48) {
+        return diffMs >= 0 ? `还剩 ${absHours} 小时` : `已超时 ${absHours} 小时`;
+    }
+
+    const absDays = Math.max(1, Math.round(absHours / 24));
+    return diffMs >= 0 ? `还剩 ${absDays} 天` : `已超时 ${absDays} 天`;
+};
+
+const toDateTimeLocalValue = (value) => {
+    const timestamp = parseDeadline(value);
+    if (!timestamp) {
+        return "";
+    }
+
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 const viewOnlyReasonLabels = {
     legacy_deadline_unknown: "旧摘要归档，只有结果摘要，不能恢复。",
     legacy_summary: "旧摘要归档，只有结果摘要，不能恢复。",
@@ -137,6 +193,8 @@ export const selectChannelIntelligenceVM = (state) => {
     });
     const currentTaskDone = taskProgressByStage[taskStage.value];
     const deadlines = state.roundState.deadlines || {};
+    const wishDeadline = deadlines.wish || null;
+    const wishDeadlineDraft = state.overlayState.roundManagement.draftDeadlines?.wish?.deadlineAt || wishDeadline?.deadlineAt || null;
 
     return {
         godPickerOpen: state.overlayState.roundManagement.godPickerOpen,
@@ -169,6 +227,11 @@ export const selectChannelIntelligenceVM = (state) => {
         canArchiveRound: canManageRound && !isArchivedCurrentRound && currentStage.value === "reveal",
         canForceArchiveRound: canManageRound && !isArchivedCurrentRound,
         currentStageLabel: currentStage.label,
+        wishDeadlineDisplay: formatAbsoluteDeadline(wishDeadline?.deadlineAt || null),
+        wishDeadlineRelativeLabel: formatRelativeDeadline(wishDeadline?.deadlineAt || null),
+        wishDeadlineEditorOpen: state.overlayState.roundManagement.deadlineEditorOpen,
+        wishDeadlineDraftValue: toDateTimeLocalValue(wishDeadlineDraft),
+        wishDeadlineButtonLabel: wishDeadline?.deadlineAt ? "修改截止" : "设置截止",
         currentTaskLabel: taskStage.taskLabel,
         currentTaskStageLabel: taskStage.label,
         currentDeadlineLabel: getDeadlineLabel(deadlines[currentStage.value], currentStage.deadlineLabel),

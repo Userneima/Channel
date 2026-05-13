@@ -121,6 +121,27 @@ export const createRoundApi = (context) => ({
 
         return context.fetchRoundRow(roundId);
     },
+    async syncCurrentRoundWishDeadline() {
+        const channel = context.ensureLoadedChannel();
+        if (!channel.id || !context.runtimeState.authUser?.id) {
+            return context.normalizeChannel(channel);
+        }
+
+        const client = context.getSupabaseClient();
+        const { error } = await client.rpc("sync_current_round_wish_deadline", {
+            target_channel_id: channel.id
+        });
+
+        if (error) {
+            if (context.isSchemaCompatibilityError(error)) {
+                return context.normalizeChannel(channel);
+            }
+            throw error;
+        }
+
+        const refreshedChannelRow = await context.fetchChannelRow(channel.slug);
+        return context.normalizeChannel(refreshedChannelRow);
+    },
     async listChannelGuessSelections() {
         return context.roundRepository.listChannelGuessSelections();
     },

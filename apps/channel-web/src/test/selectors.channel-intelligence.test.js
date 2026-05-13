@@ -189,4 +189,29 @@ describe("channel view model selectors: channel intelligence", () => {
         expect(vm.archiveDialogArchive).toBeNull();
         expect(vm.archives[0].isSelected).toBe(false);
     });
+
+    it("formats the editable wish deadline as a real timestamp", () => {
+        const state = createInitialState();
+        state.runtimeState.realIdentity = {
+            ...state.runtimeState.realIdentity,
+            role: "owner"
+        };
+        state.roundState.deadlines = {
+            wish: {
+                label: "周二 22:00 前完成",
+                deadlineAt: "2026-05-13T14:00:00.000Z"
+            }
+        };
+        state.overlayState.roundManagement.draftDeadlines = {
+            wish: {
+                label: "周二 22:00 前完成",
+                deadlineAt: "2026-05-13T14:00:00.000Z"
+            }
+        };
+
+        const vm = selectChannelIntelligenceVM(state);
+
+        expect(vm.wishDeadlineDisplay).toBe("2026.05.13 22:00");
+        expect(vm.wishDeadlineDraftValue).toBe("2026-05-13T22:00");
+    });
 });

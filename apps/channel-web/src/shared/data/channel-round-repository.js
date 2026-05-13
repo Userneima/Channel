@@ -112,6 +112,30 @@ const extractMentionTargetName = (body) => {
     return firstLine.startsWith("@") ? firstLine.slice(1).trim() : "";
 };
 
+const getWishParticipantMeta = (post) => {
+    const participantUserId = post?.wishMeta?.participantUserId || post?.authorUserId || null;
+    const participantName = String(
+        post?.wishMeta?.participantName
+        || post?.adminRevealIdentity?.name
+        || post?.authorName
+        || ""
+    ).trim();
+    const participantAvatar = String(
+        post?.wishMeta?.participantAvatar
+        || post?.adminRevealIdentity?.avatar
+        || post?.authorAvatar
+        || ""
+    ).trim();
+
+    return {
+        participantUserId,
+        participantName,
+        participantAvatar,
+        submissionSource: String(post?.wishMeta?.submissionSource || "self").trim() || "self",
+        recordedByName: String(post?.wishMeta?.recordedByName || post?.authorName || "").trim()
+    };
+};
+
 export const createChannelRoundRepository = ({
     getSupabaseClient,
     ensureLoadedChannel,
@@ -247,16 +271,21 @@ export const createChannelRoundRepository = ({
         const latestWishByMemberName = new Map();
 
         wishPosts.forEach((post) => {
-            if (post.isDeleted || !post.authorUserId) {
+            if (post.isDeleted) {
                 return;
             }
 
-            if (!latestWishByUserId.has(post.authorUserId)) {
-                latestWishByUserId.set(post.authorUserId, post);
+            const participant = getWishParticipantMeta(post);
+            if (!participant.participantUserId || !participant.participantName) {
+                return;
             }
 
-            if (!latestWishByMemberName.has(post.authorName)) {
-                latestWishByMemberName.set(post.authorName, post);
+            if (!latestWishByUserId.has(participant.participantUserId)) {
+                latestWishByUserId.set(participant.participantUserId, post);
+            }
+
+            if (!latestWishByMemberName.has(participant.participantName)) {
+                latestWishByMemberName.set(participant.participantName, post);
             }
         });
 
@@ -296,6 +325,7 @@ export const createChannelRoundRepository = ({
             const isCurrentClaim = Boolean(claimPostId);
             const isCurrentGuess = Boolean(guessTargetName);
             const wishPost = latestWishByUserId.get(userId) || null;
+            const wishParticipant = getWishParticipantMeta(wishPost);
             const claimedWishPost = isCurrentClaim ? (wishPostById.get(claimPostId) || null) : null;
             const claimSelection = claimedWishPost ? normalizeClaimSelection(claimedWishPost) : null;
             const deliveryPost = latestDeliveryByUserId.get(userId) || null;
@@ -311,6 +341,7 @@ export const createChannelRoundRepository = ({
                 : claimedWishPost;
             const revealEntry = revealMap[name] || null;
             const wishPreviewPost = latestWishByMemberName.get(name) || null;
+            const wishSubmissionSource = wishParticipant.submissionSource || "self";
 
             return {
                 identityId: useLegacyIdentityFields ? row.id : (row.identity_id || null),
@@ -319,8 +350,11 @@ export const createChannelRoundRepository = ({
                 avatar,
                 role,
                 wishSubmitted: Boolean(wishPost),
+                participatingInRound: Boolean(wishPost),
                 wishPostId: wishPost?.id || null,
                 wishPreview: wishPreviewPost ? getPostPreviewText(wishPreviewPost, 72).text : "",
+                wishSubmissionSource,
+                wishRecordedByName: wishSubmissionSource === "proxy" ? (wishParticipant.recordedByName || "") : "",
                 claimSelected: isCurrentClaim,
                 claimPostId: isCurrentClaim ? claimPostId : null,
                 claimSelectedAt: isCurrentClaim ? claimSelectedAt : null,

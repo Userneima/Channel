@@ -24,6 +24,15 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
             }
 
             try {
+                if (typeof dataService.syncCurrentRoundWishDeadline === "function") {
+                    const nextChannel = await dataService.syncCurrentRoundWishDeadline();
+                    if (nextChannel) {
+                        store.dispatch({
+                            type: "runtime/update-channel",
+                            payload: { channel: nextChannel }
+                        });
+                    }
+                }
                 const round = await dataService.loadCurrentRound();
                 if (round) {
                     store.dispatch({
@@ -319,7 +328,10 @@ export const createRoundActions = ({ store, dataService, showToast, loadFeed }) 
                 payload: {
                     draftDeadlines: {
                         ...currentDrafts,
-                        [normalizedStage]: String(value || "")
+                        [normalizedStage]: {
+                            ...(currentDrafts[normalizedStage] || store.getState().roundState.deadlines?.[normalizedStage] || {}),
+                            deadlineAt: String(value || "").trim() || null
+                        }
                     }
                 }
             });

@@ -80,6 +80,7 @@ export const cloneState = (state) => ({
     composerState: {
         ...state.composerState,
         mentionTarget: cloneSimple(state.composerState.mentionTarget),
+        proxyWishTarget: cloneSimple(state.composerState.proxyWishTarget),
         images: state.composerState.images.map((image) => ({ ...image })),
         audioDraft: cloneSimple(state.composerState.audioDraft)
     },

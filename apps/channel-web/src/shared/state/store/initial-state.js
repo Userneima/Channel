@@ -91,6 +91,7 @@ export const createInitialState = () => ({
         nextAudioId: 1,
         audioRecording: false,
         mentionTarget: null,
+        proxyWishTarget: null,
         aiDisclosure: "none",
         board: "none",
         anonymousMode: false,
@@ -102,6 +103,7 @@ export const createInitialState = () => ({
         submitStatus: "idle",
         error: null,
         mentionOpen: false,
+        proxyWishOpen: false,
         aiDisclosureOpen: false,
         boardOpen: false
     },

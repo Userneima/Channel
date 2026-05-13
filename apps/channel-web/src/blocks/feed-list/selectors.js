@@ -1,7 +1,7 @@
 import { getPostBodyText, getPostPreviewText } from "../../shared/lib/helpers.js";
 import { buildProtectedAuthorDisplay, isEntryOwnedByIdentity } from "../../shared/lib/anonymous-display.js";
 import { gameBoardStages } from "../../entities/channel/config.js";
-import { buildChannelMemberOptions, buildRevealPairs } from "../../features/round/model.js";
+import { buildChannelMemberOptions, buildRevealPairs, findCurrentMemberStatus } from "../../features/round/model.js";
 
 const stageByValue = new Map(gameBoardStages.map((stage) => [stage.value, stage]));
 const normalizeSearchValue = (value) => String(value || "").trim().toLowerCase();
@@ -81,10 +81,13 @@ export const selectFeedListVM = (state) => {
     const canModerateContent = state.membershipState.status === "approved" && canManageAnonymous;
     const selectedGuessTarget = archiveViewer ? null : (state.composerState.mentionTarget || state.roundState.guessSelection || null);
     const guessExcludedNames = new Set(state.roundState.guessExcludedNames || []);
+    const currentMemberStatus = findCurrentMemberStatus(state);
+    const canContinueCurrentRound = currentMemberStatus ? Boolean(currentMemberStatus.wishSubmitted) : true;
     const canEditGuessSelection = !archiveViewer
         && isGuessBoard
         && activeStage === "guess"
-        && state.membershipState.status === "approved";
+        && state.membershipState.status === "approved"
+        && canContinueCurrentRound;
 
     if (archiveViewer && activeBoard === "claim") {
         const postsById = new Map((archiveViewer.posts || []).map((post) => [post.id, post]));
@@ -209,6 +212,7 @@ export const selectFeedListVM = (state) => {
                     && !post.isDeleted
                     && post.board === "wish"
                     && Boolean(currentUserId)
+                    && canContinueCurrentRound
                     && !isEntryOwnedByIdentity(post, currentIdentity),
                 isClaimedWish: claimSelection?.postId === post.id,
                 claimActionLabel: claimSelection?.postId === post.id

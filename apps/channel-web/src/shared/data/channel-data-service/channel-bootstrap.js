@@ -4,7 +4,16 @@ export const createChannelBootstrapApi = (context) => ({
     },
     async loadChannelBootstrap(slug) {
         const snapshot = await context.getSessionSnapshot();
-        const channelRow = await context.fetchChannelRow(slug);
+        let channelRow = await context.fetchChannelRow(slug);
+        if (snapshot.user?.id && !snapshot.isAnonymous && channelRow?.id) {
+            const syncResponse = await context.getSupabaseClient().rpc("sync_current_round_wish_deadline", {
+                target_channel_id: channelRow.id
+            });
+
+            if (!syncResponse.error) {
+                channelRow = await context.fetchChannelRow(slug);
+            }
+        }
         const channel = context.normalizeChannel(channelRow);
         const auth = {
             user: snapshot.user,

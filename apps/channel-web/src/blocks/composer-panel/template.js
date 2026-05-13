@@ -17,6 +17,23 @@ const buildMentionMenu = (vm) => `
     </div>
 `;
 
+const buildProxyWishMenu = (vm) => `
+    <div class="composer-panel__mention-wrap composer-panel__proxy-wrap">
+        <button class="composer-panel__icon-button composer-panel__icon-button--toggle composer-panel__mention-trigger ${vm.proxyWishOpen ? "is-active" : ""} ${vm.proxyWishTarget ? "has-target" : ""}" data-composer-action="toggle-proxy-wish" type="button" title="代成员记录愿望">
+            <span class="material-icons-outlined">person_add</span>
+        </button>
+        <div class="composer-panel__mention-menu ${vm.proxyWishOpen ? "is-open" : ""}">
+            <div class="composer-panel__mention-title">代谁记录愿望</div>
+            ${vm.proxyWishMembers.length ? vm.proxyWishMembers.map((member) => `
+                <button class="composer-panel__mention-option" data-proxy-member-name="${escapeHtml(member.name)}" data-proxy-member-avatar="${escapeHtml(member.avatar || "")}" data-proxy-member-user-id="${escapeHtml(member.userId || "")}" data-proxy-member-identity-id="${escapeHtml(member.identityId || "")}" type="button">
+                    <img alt="${escapeHtml(member.name)}" class="composer-panel__mention-avatar" src="${member.avatar}" />
+                    <span>${escapeHtml(member.name)}</span>
+                </button>
+            `).join("") : `<div class="composer-panel__mention-empty">当前没有待补录的成员。</div>`}
+        </div>
+    </div>
+`;
+
 const buildRecordingButton = (vm, extraClass = "") => `
     <button class="composer-panel__icon-button composer-panel__icon-button--toggle ${extraClass} ${vm.audioRecording ? "is-active is-recording" : ""}" data-composer-action="toggle-recording" type="button" title="${vm.audioRecording ? "结束录音" : "开始录音"}">
         <span class="material-icons-outlined">${vm.audioRecording ? "stop_circle" : "mic"}</span>
@@ -115,9 +132,16 @@ export const composerPanelTemplate = (vm) => `
                             <img alt="${escapeHtml(vm.mentionTarget.name)}" class="composer-panel__mention-avatar" src="${vm.mentionTarget.avatar}" />
                             <span>${escapeHtml(vm.mentionTarget.name)}</span>
                         </div>
+                    ` : vm.proxyWishTarget ? `
+                        <div class="composer-panel__mention-chip composer-panel__mention-chip--collapsed">
+                            <span class="composer-panel__mention-chip-label">代录</span>
+                            <img alt="${escapeHtml(vm.proxyWishTarget.name)}" class="composer-panel__mention-avatar" src="${vm.proxyWishTarget.avatar}" />
+                            <span>${escapeHtml(vm.proxyWishTarget.name)}</span>
+                        </div>
                     ` : ""}
                     <div class="composer-panel__tools composer-panel__tools--collapsed">
                         ${vm.stageInfo.requiresMention && vm.canChooseMentionTarget ? buildMentionMenu(vm) : ""}
+                        ${vm.canProxyWish ? buildProxyWishMenu(vm) : ""}
                         ${vm.anonymousLocked ? `
                             <div class="composer-panel__stage-badge">匿名阶段</div>
                         ` : `
@@ -143,6 +167,7 @@ export const composerPanelTemplate = (vm) => `
                         <span class="material-icons-outlined">sentiment_satisfied_alt</span>
                     </button>
                     ${vm.stageInfo.requiresMention && vm.canChooseMentionTarget ? buildMentionMenu(vm) : ""}
+                    ${vm.canProxyWish ? buildProxyWishMenu(vm) : ""}
                     ${vm.anonymousLocked ? `
                         <div class="composer-panel__stage-badge">匿名阶段</div>
                     ` : `
@@ -220,6 +245,16 @@ export const composerPanelTemplate = (vm) => `
                 <div class="composer-panel__stage-note">
                     <span class="composer-panel__stage-note-title">${escapeHtml(vm.stageInfo.label)}阶段</span>
                 </div>
+                ${vm.proxyWishTarget ? `
+                    <div class="composer-panel__mention-chip">
+                        <span class="composer-panel__mention-chip-label">代录</span>
+                        <img alt="${escapeHtml(vm.proxyWishTarget.name)}" class="composer-panel__mention-avatar" src="${vm.proxyWishTarget.avatar}" />
+                        <span>${escapeHtml(vm.proxyWishTarget.name)}</span>
+                        <button class="composer-panel__mention-clear" data-composer-action="clear-proxy-wish" type="button" aria-label="清除代录对象">
+                            <span class="material-icons-outlined">close</span>
+                        </button>
+                    </div>
+                ` : ""}
                 ${vm.isDeliveryStage && vm.claimSelection ? `
                     <div class="composer-panel__claim-card composer-panel__claim-card--compact">
                         <div class="composer-panel__claim-preview">${escapeHtml(vm.claimSelection.previewText)}</div>

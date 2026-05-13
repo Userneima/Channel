@@ -111,6 +111,12 @@
     line-height: 1.45;
 }
 
+.channel-intelligence__round-meta {
+    color: var(--color-text-muted);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
 .channel-intelligence__round-value.has-avatar {
     display: inline-flex;
     align-items: center;

@@ -326,6 +326,14 @@ export const createFeedActions = ({ store, dataService, showToast }) => ({
         }
 
         const state = store.getState();
+        const currentMemberStatus = findCurrentMemberStatus(state);
+        if (currentMemberStatus && !currentMemberStatus.wishSubmitted) {
+            showToast({
+                tone: "info",
+                message: "这轮后续流程只对已许愿成员开放。需要的话可以让上帝代你补录愿望。"
+            });
+            return;
+        }
         const post = findFeedPostById(state, postId);
         if (!post || post.isDeleted) {
             showToast({

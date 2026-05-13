@@ -11,6 +11,9 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
         if (!target.closest(".composer-panel__mention-wrap")) {
             actions.closeMentionMenu();
         }
+        if (!target.closest(".composer-panel__proxy-wrap")) {
+            actions.closeProxyWishMenu();
+        }
     });
 
     root.addEventListener("click", (event) => {
@@ -27,6 +30,17 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
             actions.selectMentionTarget({
                 name: mentionOption.dataset.mentionMemberName,
                 avatar: mentionOption.dataset.mentionMemberAvatar || ""
+            });
+            return;
+        }
+
+        const proxyOption = event.target.closest("[data-proxy-member-name]");
+        if (proxyOption) {
+            actions.selectProxyWishTarget({
+                name: proxyOption.dataset.proxyMemberName,
+                avatar: proxyOption.dataset.proxyMemberAvatar || "",
+                userId: proxyOption.dataset.proxyMemberUserId || null,
+                identityId: proxyOption.dataset.proxyMemberIdentityId || null
             });
             return;
         }
@@ -56,8 +70,16 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
             actions.toggleMentionMenu();
             return;
         }
+        if (action === "toggle-proxy-wish") {
+            actions.toggleProxyWishMenu();
+            return;
+        }
         if (action === "clear-mention") {
             actions.clearMentionTarget();
+            return;
+        }
+        if (action === "clear-proxy-wish") {
+            actions.clearProxyWishTarget();
             return;
         }
         if (action === "rotate-alias") {
