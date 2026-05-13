@@ -1628,6 +1628,24 @@ export const createChannelDataServiceContext = () => {
             };
         }
 
+        const ensuredMembership = await ensureApprovedMembership(channelId, snapshot);
+        if (ensuredMembership?.identityId) {
+            let reviewItems = [];
+            if (includeReviewItems && (ensuredMembership.role === "owner" || ensuredMembership.role === "admin")) {
+                reviewItems = await context.api.listPendingJoinRequests(channelId);
+            }
+
+            return {
+                status: "approved",
+                joinRequest: null,
+                reviewItems,
+                role: ensuredMembership.role,
+                identityId: ensuredMembership.identityId,
+                displayName: ensuredMembership.displayName,
+                avatarUrl: ensuredMembership.avatarUrl
+            };
+        }
+
         const latestJoinRequest = await fetchLatestOwnJoinRequest(channelId, snapshot.user.id);
         if (latestJoinRequest) {
             const profileByUserId = await fetchReviewProfiles([latestJoinRequest]);
