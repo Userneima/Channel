@@ -53,6 +53,14 @@ export const channelMenuDialogTemplate = (vm) => `
         action: "notification-settings",
         label: "消息通知"
     })}
+                <button class="channel-menu-dialog__row" data-channel-menu-action="toggle-theme-mode" type="button">
+                    <span class="channel-menu-dialog__row-label">暗黑模式</span>
+                    <span class="channel-menu-dialog__row-tail">
+                        <span class="channel-menu-dialog__toggle ${vm.themeMode === "dark" ? "is-active" : ""}">
+                            <span class="channel-menu-dialog__toggle-thumb"></span>
+                        </span>
+                    </span>
+                </button>
             </div>
             <button class="channel-menu-dialog__danger" data-channel-menu-action="leave-channel" type="button">退出频道</button>
         </div>

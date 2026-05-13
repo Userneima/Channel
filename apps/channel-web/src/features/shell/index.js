@@ -1,4 +1,23 @@
+import { applyDocumentTheme, normalizeThemeMode, writeStoredThemeMode } from "../../shared/lib/theme.js";
+
 export const createShellActions = ({ store, dataService, showToast }) => ({
+    initializeThemeMode(mode = "light") {
+        const themeMode = applyDocumentTheme(mode);
+        store.dispatch({
+            type: "ui/set-theme-mode",
+            payload: { value: themeMode }
+        });
+    },
+    toggleThemeMode() {
+        const current = normalizeThemeMode(store.getState().uiState.themeMode);
+        const nextValue = current === "dark" ? "light" : "dark";
+        applyDocumentTheme(nextValue);
+        writeStoredThemeMode(nextValue);
+        store.dispatch({
+            type: "ui/set-theme-mode",
+            payload: { value: nextValue }
+        });
+    },
     setSidebarOpen(open) {
         store.dispatch({
             type: "ui/set-sidebar",

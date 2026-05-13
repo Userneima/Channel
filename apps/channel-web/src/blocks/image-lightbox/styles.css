@@ -21,7 +21,7 @@
 .image-lightbox__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.78);
+    background: var(--color-lightbox-backdrop);
     backdrop-filter: blur(10px);
 }
 
@@ -61,10 +61,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--color-lightbox-close-border);
     border-radius: 999px;
-    background: rgba(24, 24, 24, 0.82);
-    color: rgba(255, 255, 255, 0.88);
+    background: var(--color-lightbox-close-surface);
+    color: var(--color-text);
 }
 
 .image-lightbox__close:focus {

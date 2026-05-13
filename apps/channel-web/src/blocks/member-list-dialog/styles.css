@@ -9,7 +9,7 @@
 .member-list-dialog__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(64, 46, 24, 0.16);
+    background: var(--color-overlay-backdrop);
     opacity: 0;
     transition: opacity 180ms ease;
 }
@@ -176,8 +176,8 @@
 
 .member-list-dialog__action--danger,
 .member-list-dialog__confirm-button--danger {
-    background: rgba(162, 67, 67, 0.2);
-    color: #b64040;
+    background: var(--color-danger-soft);
+    color: var(--color-danger-ink);
 }
 
 .member-list-dialog__confirm {
@@ -194,7 +194,7 @@
 }
 
 .member-list-dialog__status--error {
-    color: #b64040;
+    color: var(--color-danger-ink);
 }
 
 @media (max-width: 560px) {

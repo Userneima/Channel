@@ -42,6 +42,11 @@ export const attachChannelMenuDialogEvents = ({ root, actions }) => {
             return;
         }
 
+        if (action === "toggle-theme-mode") {
+            actions.toggleThemeMode();
+            return;
+        }
+
         if (action === "leave-channel") {
             actions.showToast({
                 tone: "info",

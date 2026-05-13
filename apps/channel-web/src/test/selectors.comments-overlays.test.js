@@ -235,8 +235,10 @@ describe("channel view model selectors: comments/overlays", () => {
             id: "user-1",
             email: "wyc1186164839@gmail.com"
         };
+        state.uiState.themeMode = "dark";
 
         expect(selectChannelMenuDialogVM(state).canViewRegisteredUsers).toBe(true);
+        expect(selectChannelMenuDialogVM(state).themeMode).toBe("dark");
 
         state.authState.user.email = "member@example.com";
         expect(selectChannelMenuDialogVM(state).canViewRegisteredUsers).toBe(false);

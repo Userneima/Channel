@@ -41,5 +41,6 @@ export const selectChannelMenuDialogVM = (state) => ({
         && ["owner", "admin"].includes(state.runtimeState.realIdentity.role),
     canViewRegisteredUsers: state.authState.status === "authenticated"
         && isPlatformOperatorEmail(state.authState.user?.email),
-    adminRevealAnonymous: state.uiState.adminRevealAnonymous
+    adminRevealAnonymous: state.uiState.adminRevealAnonymous,
+    themeMode: state.uiState.themeMode || "light"
 });

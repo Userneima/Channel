@@ -7,11 +7,15 @@ import { mountChannelPage } from "./screens/channel-page/index.js";
 import { mountChannelListPage } from "./screens/channel-list/index.js";
 import { mountDemoPage } from "./screens/demo-page/index.js";
 import { createDemoDataService } from "./demo/data-service.js";
+import { applyDocumentTheme, readStoredThemeMode } from "./shared/lib/theme.js";
 import "./shared/styles/tokens.css";
 import "./shared/styles/foundations.css";
 import "./shared/styles/app.css";
 
 const appRoot = document.getElementById("app");
+const initialThemeMode = readStoredThemeMode();
+
+applyDocumentTheme(initialThemeMode);
 
 if (!appRoot) {
     throw new Error("Missing #app root.");
@@ -25,6 +29,7 @@ if (view === "create-channel") {
         store,
         dataService: channelDataService
     });
+    actions.initializeThemeMode(initialThemeMode);
 
     mountCreateChannelPage({
         root: appRoot,
@@ -43,6 +48,7 @@ if (view === "create-channel") {
         store,
         dataService: createDemoDataService()
     });
+    actions.initializeThemeMode(initialThemeMode);
 
     store.dispatch({
         type: "feed/set-board",
@@ -69,6 +75,7 @@ if (view === "create-channel") {
         store,
         dataService: channelDataService
     });
+    actions.initializeThemeMode(initialThemeMode);
 
     mountChannelPage({
         root: appRoot,

@@ -159,7 +159,7 @@
 
 .channel-intelligence__action-button.is-danger {
     background: rgba(255, 107, 107, 0.14);
-    color: #b64040;
+    color: var(--color-danger-ink);
 }
 
 .channel-intelligence__picker,
@@ -311,7 +311,7 @@
 }
 
 .channel-intelligence__archive-copy {
-    color: rgba(231, 229, 228, 0.84);
+    color: var(--color-text);
     font-size: 0.78rem;
     line-height: 1.5;
 }
@@ -326,7 +326,7 @@
     gap: 0.4rem;
     padding: 0.72rem 0.8rem;
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.035);
+    background: var(--color-surface-ghost);
 }
 
 .channel-intelligence__archive-post-head {
@@ -349,7 +349,7 @@
     gap: 0.12rem;
     padding: 0.52rem 0.6rem;
     border-radius: 0.75rem;
-    background: rgba(0, 0, 0, 0.16);
+    background: var(--color-surface-strong);
 }
 
 .channel-intelligence__archive-comment span {
@@ -359,7 +359,7 @@
 
 .channel-intelligence__archive-comment p {
     margin: 0;
-    color: rgba(231, 229, 228, 0.82);
+    color: var(--color-text);
     font-size: 0.78rem;
     line-height: 1.45;
 }
@@ -393,7 +393,7 @@
     align-items: center;
     padding: 0.65rem 0.75rem;
     border-radius: 0.95rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-ghost);
 }
 
 .channel-intelligence__reveal-person {
@@ -401,7 +401,7 @@
     align-items: center;
     gap: 0.45rem;
     min-width: 0;
-    color: rgba(231, 229, 228, 0.9);
+    color: var(--color-text);
     font-size: 0.8rem;
 }
 
@@ -415,9 +415,9 @@
     width: 100%;
     min-height: 2.4rem;
     padding: 0 0.85rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
     border-radius: 0.85rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-strong);
     color: var(--color-text);
     outline: none;
 }
@@ -467,8 +467,8 @@
     height: 2rem;
     border: 0;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(231, 229, 228, 0.84);
+    background: var(--color-surface-soft);
+    color: var(--color-text-muted);
 }
 
 .channel-intelligence-dialog {
@@ -482,7 +482,7 @@
     position: absolute;
     inset: 0;
     border: 0;
-    background: rgba(64, 46, 24, 0.16);
+    background: var(--color-overlay-backdrop);
     opacity: 0;
     transition: opacity 180ms ease;
 }
@@ -546,7 +546,7 @@
 }
 
 .channel-intelligence__section-title {
-    color: rgba(231, 229, 228, 0.88);
+    color: var(--color-text);
     font-size: 0.82rem;
 }
 
@@ -624,7 +624,7 @@
     z-index: 2;
     margin: -0.9rem -1.1rem 0;
     padding: 0.9rem 1.1rem 0.8rem;
-    background: linear-gradient(180deg, rgba(255, 253, 248, 0.96) 82%, rgba(255, 253, 248, 0.82));
+    background: linear-gradient(180deg, rgba(var(--color-surface-rgb), 0.96) 82%, rgba(var(--color-surface-rgb), 0.82));
     border-bottom: 1px solid var(--color-border);
 }
 

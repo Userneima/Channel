@@ -9,7 +9,7 @@
 .identity-dialog__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(64, 46, 24, 0.16);
+    background: var(--color-overlay-backdrop);
     opacity: 0;
     transition: opacity 160ms ease;
 }
@@ -111,10 +111,10 @@
     width: 1.9rem;
     height: 1.9rem;
     border-radius: 999px;
-    border: 1px solid rgba(89, 68, 42, 0.08);
-    background: #ffffff;
-    color: #1f1f1f;
-    box-shadow: 0 8px 18px rgba(82, 60, 31, 0.12);
+    border: 1px solid var(--color-border);
+    background: var(--color-floating-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-floating);
 }
 
 .identity-dialog__ghost,
@@ -180,7 +180,7 @@
 .identity-dialog__inline-field:focus-within {
     border-color: rgba(92, 124, 255, 0.95);
     box-shadow: 0 0 0 1px rgba(92, 124, 255, 0.16);
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--color-input-surface);
 }
 
 .identity-dialog__count {

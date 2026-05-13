@@ -9,7 +9,7 @@
 .notification-center__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(64, 46, 24, 0.14);
+    background: var(--color-overlay-backdrop);
     opacity: 0;
     transition: opacity 160ms ease;
 }
@@ -22,7 +22,7 @@
     height: min(30.5rem, calc(100vh - 5.1rem));
     border-radius: 0.88rem;
     border: 1px solid var(--color-border);
-    background: linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(246, 241, 232, 0.98));
+    background: linear-gradient(180deg, var(--color-floating-surface), var(--color-floating-surface-alt));
     box-shadow: var(--shadow-floating);
     overflow: hidden;
     opacity: 0;
@@ -195,7 +195,7 @@
 
 @media (max-width: 720px) {
     .notification-center__backdrop {
-        background: rgba(64, 46, 24, 0.18);
+        background: var(--color-overlay-backdrop-strong);
     }
 
     .notification-center__panel {

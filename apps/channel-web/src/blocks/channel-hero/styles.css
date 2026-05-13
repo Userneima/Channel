@@ -5,10 +5,10 @@
     border: 1px solid var(--color-border);
     border-radius: 1rem;
     background:
-        linear-gradient(90deg, rgba(255, 252, 246, 0.72), rgba(244, 239, 230, 0.94)),
+        linear-gradient(90deg, var(--color-hero-wash-start), var(--color-hero-wash-end)),
         var(--channel-hero-image, none),
-        linear-gradient(90deg, rgba(59, 130, 246, 0.08), rgba(255, 255, 255, 0.4)),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.08));
+        linear-gradient(90deg, var(--color-hero-accent-wash), var(--color-hero-gloss)),
+        linear-gradient(180deg, var(--color-hero-sheen), var(--color-hero-sheen-fade));
     background-size: cover, cover, auto, auto;
     background-position: center, center, center, center;
     margin-bottom: 0.65rem;
@@ -19,7 +19,7 @@
     position: absolute;
     inset: 0 -6rem 0 auto;
     width: 13rem;
-    background: rgba(255, 255, 255, 0.34);
+    background: var(--color-hero-panel-sheen);
     transform: skewX(-18deg);
 }
 
@@ -44,7 +44,7 @@
     height: 3.1rem;
     padding: 0.22rem;
     border-radius: 0.95rem;
-    background: white;
+    background: var(--color-hero-logo-shell);
 }
 
 .channel-hero__logo {
@@ -86,8 +86,8 @@
 .channel-hero__icon {
     display: inline-flex;
     align-items: center;
-    border: 1px solid rgba(91, 72, 48, 0.08);
-    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--color-hero-icon-border);
+    background: var(--color-hero-icon-surface);
     color: var(--color-text);
     width: 2.3rem;
     height: 2.3rem;
@@ -100,7 +100,7 @@
 }
 
 .channel-hero__icon:hover {
-    background: rgba(255, 255, 255, 0.94);
+    background: var(--color-hero-icon-surface-hover);
 }
 
 @media (max-width: 720px) {

@@ -15,6 +15,9 @@ export const applyUiActions = (draft, action) => {
     case "ui/toggle-admin-reveal-anonymous":
         draft.uiState.adminRevealAnonymous = !draft.uiState.adminRevealAnonymous;
         return true;
+    case "ui/set-theme-mode":
+        draft.uiState.themeMode = action.payload.value;
+        return true;
     default:
         return false;
     }

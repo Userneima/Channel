@@ -68,6 +68,6 @@
 }
 
 .join-request-panel__note {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-surface-strong);
     color: var(--color-text-muted);
 }

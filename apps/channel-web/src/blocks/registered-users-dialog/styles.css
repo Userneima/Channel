@@ -9,7 +9,7 @@
 .registered-users-dialog__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(64, 46, 24, 0.16);
+    background: var(--color-overlay-backdrop);
     opacity: 0;
     transition: opacity 180ms ease;
 }
@@ -118,7 +118,7 @@
     height: 2.2rem;
     border-radius: 999px;
     object-fit: cover;
-    background: rgba(89, 68, 42, 0.08);
+    background: var(--color-soft-fill-strong);
 }
 
 .registered-users-dialog__copy {
@@ -176,7 +176,7 @@
 }
 
 .registered-users-dialog__status--error {
-    color: #b64040;
+    color: var(--color-danger-ink);
 }
 
 @media (max-width: 640px) {

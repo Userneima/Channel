@@ -8,7 +8,7 @@
     min-height: 3.5rem;
     padding: 0 var(--space-4);
     border-bottom: 1px solid var(--color-border);
-    background: rgba(255, 252, 246, 0.92);
+    background: rgba(var(--color-surface-rgb), 0.92);
     backdrop-filter: blur(18px);
 }
 
@@ -37,7 +37,7 @@
     position: fixed;
     inset: 0;
     z-index: 29;
-    background: rgba(64, 46, 24, 0.16);
+    background: var(--color-overlay-backdrop);
     opacity: 0;
     pointer-events: none;
     transition: opacity 180ms ease;
@@ -127,11 +127,11 @@
     display: grid;
     gap: 0.8rem;
     padding: 1rem;
-    border: 1px solid rgba(141, 116, 83, 0.12);
+    border: 1px solid rgba(var(--color-border-rgb), 0.18);
     border-radius: 1rem;
     background:
-        linear-gradient(180deg, rgba(96, 145, 255, 0.1), rgba(255, 255, 255, 0.6)),
-        rgba(255, 253, 248, 0.82);
+        linear-gradient(180deg, rgba(96, 145, 255, 0.1), rgba(var(--color-surface-rgb), 0.6)),
+        rgba(var(--color-surface-rgb), 0.82);
 }
 
 .sidebar-nav__promo-eyebrow {

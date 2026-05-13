@@ -28,7 +28,12 @@ body.app-scroll-locked {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: linear-gradient(180deg, rgba(244, 239, 230, 0.98), rgba(244, 239, 230, 0.92) 82%, rgba(244, 239, 230, 0));
+    background: linear-gradient(
+        180deg,
+        rgba(var(--color-page-rgb), 0.98),
+        rgba(var(--color-page-rgb), 0.92) 82%,
+        rgba(var(--color-page-rgb), 0)
+    );
     backdrop-filter: blur(18px);
 }
 
@@ -88,8 +93,8 @@ body.app-scroll-locked {
 }
 
 .channel-page--condensed .channel-page__top-region {
-    background: rgba(244, 239, 230, 0.94);
-    border-bottom: 1px solid rgba(141, 116, 83, 0.1);
+    background: rgba(var(--color-page-rgb), 0.94);
+    border-bottom: 1px solid rgba(var(--color-border-rgb), 0.18);
 }
 
 .channel-page--condensed .channel-hero {

@@ -221,6 +221,7 @@ export const createInitialState = () => ({
         topRegion: "expanded",
         accountMenuOpen: false,
         searchFocusNonce: 0,
-        adminRevealAnonymous: false
+        adminRevealAnonymous: false,
+        themeMode: "light"
     }
 });
