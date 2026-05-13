@@ -11,7 +11,7 @@ const buildRoundNavItemCopy = ({
     createdAt = null,
     statusLabel = ""
 } = {}) => {
-    const dateLabel = formatRoundDateLabel(startedAt || completedAt || createdAt || null);
+    const dateLabel = formatRoundDateLabel(completedAt || startedAt || createdAt || null);
 
     return {
         name: buildRoundPrimaryLabel({ title, defaultTitle, theme, startedAt, completedAt, createdAt }),

@@ -175,7 +175,9 @@ describe("sidebar nav account menu", () => {
                     id: "archive-1",
                     title: "玄学测试",
                     theme: "玄学测试",
+                    startedAt: "2026-04-20T12:00:00.000Z",
                     completedAt: "2026-04-23T12:00:00.000Z",
+                    createdAt: "2026-05-13T12:00:00.000Z",
                     revealPairs: [],
                     stats: { pairCount: 0 }
                 }]
@@ -188,6 +190,7 @@ describe("sidebar nav account menu", () => {
         expect(root.textContent).toContain("玄学测试");
         expect(root.textContent).toContain("2026.05.13");
         expect(root.textContent).toContain("2026.04.23");
+        expect(root.textContent).not.toContain("2026.05.13玄学测试");
 
         root.querySelector("[data-sidebar-round-kind='archive']")?.click();
         await Promise.resolve();

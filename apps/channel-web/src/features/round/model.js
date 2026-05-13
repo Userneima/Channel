@@ -31,7 +31,7 @@ export const buildRoundDisplayTitle = ({
     const explicitTitle = String(title || "").trim();
     const normalizedDefaultTitle = String(defaultTitle || "").trim();
     const normalizedTheme = String(theme || "").trim();
-    const dateLabel = formatRoundDateLabel(startedAt || completedAt || createdAt || null);
+    const dateLabel = formatRoundDateLabel(completedAt || startedAt || createdAt || null);
 
     if (explicitTitle) {
         return explicitTitle;

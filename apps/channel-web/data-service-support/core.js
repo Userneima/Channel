@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { defaultRoundDeadlines } from "../src/entities/channel/config.js";
 import { defaultAnonymousProfiles, defaultRealIdentity, mentionMembers } from "../src/entities/identity/config.js";
 import { runtimeConfig } from "../src/shared/config/runtime-config.js";
-import { getPostPreviewText } from "../src/shared/lib/helpers.js";
+import { formatAbsoluteDateLabel, formatActivityTimeLabel, getPostPreviewText } from "../src/shared/lib/helpers.js";
 import { isEntryOwnedByIdentity } from "../src/shared/lib/anonymous-display.js";
 import {
     createChannelRoundRepository,
@@ -159,21 +159,6 @@ const legacyPostSelectFields = `
     ),
     comments (${legacyCommentSelectFields})
 `;
-
-const getRelativeTimeLabel = (timestamp) => {
-    const diffMs = Date.now() - Date.parse(timestamp);
-    if (Number.isNaN(diffMs) || diffMs < 5 * 60 * 1000) {
-        return "刚刚";
-    }
-
-    const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
-    if (diffHours < 24) {
-        return `${Math.max(1, diffHours)}小时前`;
-    }
-
-    const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-    return `${Math.max(1, diffDays)}天前`;
-};
 
 const decodeJwtPayload = (token) => {
     if (!token) {
@@ -557,7 +542,7 @@ const normalizeCommentRow = (commentRow) => {
         authorUserId: author.user_id || author.real_identity?.userId || null,
         isAnonymous: author.is_alias,
         createdAt: commentRow.created_at,
-        timeLabel: getRelativeTimeLabel(commentRow.created_at),
+        timeLabel: formatActivityTimeLabel(commentRow.created_at),
         likes: isDeleted ? 0 : (commentRow.likes_count || 0),
         parentCommentId: commentRow.parent_comment_id || null,
         text: isDeleted ? "该评论已删除" : commentRow.body,
@@ -675,8 +660,8 @@ const normalizePostRow = (postRow) => {
         deletedByModerator: Boolean(postRow.deleted_snapshot?.deleted_by_moderator),
         deletedLabel: isDeleted ? "该帖子已删除" : "",
         role: author.role || author.real_identity?.role || "member",
-        timeLabel: getRelativeTimeLabel(postRow.created_at),
-        dateLabel: postRow.created_at.slice(0, 10),
+        timeLabel: formatActivityTimeLabel(postRow.created_at),
+        dateLabel: formatAbsoluteDateLabel(postRow.created_at),
         views: postRow.views_count,
         likes: isDeleted ? 0 : postRow.likes_count,
         shares: isDeleted ? 0 : postRow.shares_count,

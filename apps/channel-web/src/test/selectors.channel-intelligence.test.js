@@ -153,7 +153,9 @@ describe("channel view model selectors: channel intelligence", () => {
             id: "archive-1",
             title: "玄学测试",
             theme: "玄学测试",
+            startedAt: "2026-04-20T12:00:00.000Z",
             completedAt: "2026-04-23T12:00:00.000Z",
+            createdAt: "2026-05-13T12:00:00.000Z",
             godProfile: { name: "海屿", avatar: "haiyu-avatar" },
             stats: {
                 totalMembers: 3,
@@ -172,6 +174,8 @@ describe("channel view model selectors: channel intelligence", () => {
         expect(vm.archives).toHaveLength(1);
         expect(vm.selectedArchive?.id).toBe("archive-1");
         expect(vm.archiveDialogArchive?.id).toBe("archive-1");
+        expect(vm.selectedArchive?.metaLine).toContain("2026.04.23");
+        expect(vm.selectedArchive?.metaLine).not.toContain("2026.05.13");
         expect(vm.selectedArchive?.metaLine).toContain("1 对揭晓");
     });
 

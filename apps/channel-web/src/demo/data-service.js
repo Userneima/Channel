@@ -7,20 +7,9 @@ import {
     demoPosts
 } from "./seed.js";
 import { defaultRoundDeadlines } from "../entities/channel/config.js";
+import { formatAbsoluteDateLabel, formatActivityTimeLabel } from "../shared/lib/helpers.js";
 
 const cloneValue = (value) => JSON.parse(JSON.stringify(value));
-
-const buildTimeLabel = (createdAt) => {
-    const diffMinutes = Math.max(1, Math.round((Date.now() - Date.parse(createdAt)) / 60000));
-    if (diffMinutes < 60) {
-        return "刚刚";
-    }
-    const diffHours = Math.round(diffMinutes / 60);
-    if (diffHours < 24) {
-        return `${diffHours}小时前`;
-    }
-    return `${Math.round(diffHours / 24)}天前`;
-};
 
 const buildClaimSelection = (post) => ({
     postId: post.id,
@@ -367,8 +356,8 @@ export const createDemoDataService = () => {
                 authorUserId: getCurrentUserId(),
                 text: String(input.body || "").trim(),
                 createdAt,
-                timeLabel: buildTimeLabel(createdAt),
-                dateLabel: createdAt,
+                timeLabel: formatActivityTimeLabel(createdAt),
+                dateLabel: formatAbsoluteDateLabel(createdAt),
                 isAnonymous,
                 isDeleted: false,
                 deletedLabel: "",
@@ -505,7 +494,7 @@ export const createDemoDataService = () => {
                 authorUserId: getCurrentUserId(),
                 text: String(input.body || "").trim(),
                 createdAt,
-                timeLabel: buildTimeLabel(createdAt),
+                timeLabel: formatActivityTimeLabel(createdAt),
                 isAnonymous: author.isAnonymous,
                 isDeleted: false,
                 deletedLabel: "",

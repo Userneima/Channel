@@ -9,6 +9,48 @@ export const platformOperatorEmail = "wyc1186164839@gmail.com";
 
 export const isPlatformOperatorEmail = (email) => String(email || "").trim().toLowerCase() === platformOperatorEmail;
 
+const parseTimestamp = (value) => {
+    const timestamp = Date.parse(value || "");
+    return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+export const formatAbsoluteDateLabel = (value) => {
+    const timestamp = parseTimestamp(value);
+    if (!timestamp) {
+        return "";
+    }
+
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+};
+
+export const formatActivityTimeLabel = (value) => {
+    const timestamp = parseTimestamp(value);
+    if (!timestamp) {
+        return "";
+    }
+
+    const diffMs = Date.now() - timestamp;
+    if (diffMs < 5 * 60 * 1000) {
+        return "刚刚";
+    }
+
+    const diffMinutes = Math.max(1, Math.floor(diffMs / (60 * 1000)));
+    if (diffMinutes < 60) {
+        return `${diffMinutes}分钟前`;
+    }
+
+    const diffHours = Math.max(1, Math.floor(diffMinutes / 60));
+    if (diffHours < 24) {
+        return `${diffHours}小时前`;
+    }
+
+    return formatAbsoluteDateLabel(value);
+};
+
 const anonymousNamePrefixes = [
     "雾", "岚", "栖", "舟", "川", "汀", "野", "弦",
     "澄", "暮", "云", "白", "青", "鹿", "松", "迟"

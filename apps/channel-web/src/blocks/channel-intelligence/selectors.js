@@ -65,7 +65,7 @@ const formatArchiveDate = (value) => {
 const buildArchiveMetaLine = (archive) => {
     const pairCount = Number(archive?.stats?.pairCount || archive?.revealPairs?.length || 0);
     const godName = String(archive?.godProfile?.name || "").trim();
-    const completedDate = formatArchiveDate(archive?.completedAt || archive?.createdAt);
+    const completedDate = formatArchiveDate(archive?.completedAt || archive?.startedAt);
     return [completedDate, godName ? `上帝 ${godName}` : "", `${pairCount} 对揭晓`]
         .filter(Boolean)
         .join(" · ");
@@ -170,7 +170,7 @@ export const selectChannelIntelligenceVM = (state) => {
             completedAt: archive.completedAt,
             createdAt: archive.createdAt
         }),
-        completedDateLabel: formatArchiveDate(archive.completedAt || archive.createdAt),
+        completedDateLabel: formatArchiveDate(archive.completedAt || archive.startedAt),
         metaLine: buildArchiveMetaLine(archive),
         isSelected: archive.id === effectiveSelectedArchiveId
     }));
