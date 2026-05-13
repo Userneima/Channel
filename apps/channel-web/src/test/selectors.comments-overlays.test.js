@@ -165,6 +165,68 @@ describe("channel view model selectors: comments/overlays", () => {
         expect(selectChannelMenuDialogVM(state).panelStyle).toContain("left:");
     });
 
+    it("builds real interaction and round reminder notifications from current state", () => {
+        const state = createInitialState();
+        state.authState.status = "authenticated";
+        state.authState.user = { id: "user-1", email: "member@example.com" };
+        state.membershipState.status = "approved";
+        state.runtimeState.realIdentity = {
+            ...state.runtimeState.realIdentity,
+            id: "identity-1",
+            name: "章鱼烧",
+            role: "owner"
+        };
+        state.roundState.activeStage = "wish";
+        state.roundState.startedAt = "2026-05-13T10:00:00.000Z";
+        state.roundState.godProfile = { userId: "user-owner", name: "海屿", avatar: "god-avatar" };
+        state.roundState.deadlines = {
+            wish: {
+                label: "许愿截止",
+                deadlineAt: "2026-05-13T12:00:00.000Z"
+            }
+        };
+        state.roundState.memberStatuses = [
+            {
+                identityId: "identity-1",
+                userId: "user-1",
+                name: "章鱼烧",
+                wishSubmitted: true,
+                wishSubmissionSource: "proxy",
+                wishRecordedByName: "海屿",
+                wishPreview: "希望有人帮我排一下本周任务顺序"
+            },
+            {
+                identityId: "identity-2",
+                userId: "user-2",
+                name: "测试账号",
+                wishSubmitted: false
+            }
+        ];
+        state.feedState.items = [{
+            id: "post-1",
+            authorUserId: "user-1",
+            authorName: "章鱼烧",
+            authorAvatar: "self-avatar",
+            text: "这是我的帖子",
+            comments: [{
+                id: "comment-1",
+                authorUserId: "user-2",
+                authorName: "测试账号",
+                authorAvatar: "test-avatar",
+                text: "我来评论一下",
+                createdAt: "2026-05-13T11:00:00.000Z"
+            }]
+        }];
+
+        const interactionVm = selectNotificationCenterVM(state);
+        expect(interactionVm.items.some((item) => item.actionLine.includes("代你记录了本轮愿望"))).toBe(true);
+        expect(interactionVm.items.some((item) => item.actionLine.includes("评论了我的帖子"))).toBe(true);
+
+        state.overlayState.notificationCenter.tab = "admin";
+        const adminVm = selectNotificationCenterVM(state);
+        expect(adminVm.items.some((item) => item.actionLine.includes("还有 1 人没提交愿望"))).toBe(true);
+    });
+
     it("only exposes the registered users entry to the designated operator account", () => {
         const state = createInitialState();
         state.authState.status = "authenticated";

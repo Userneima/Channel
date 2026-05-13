@@ -208,6 +208,7 @@ const buildPostCard = (post) => `
                         ` : ""}
                     </div>
                     <div class="feed-card__time">${escapeHtml(post.timeLabel)}</div>
+                    ${post.proxyWishSubmission ? `<div class="feed-card__proxy-note">${escapeHtml(post.proxyWishLabel)}</div>` : ""}
                 </div>
                 <div class="feed-card__header-actions">
                     ${post.canDelete ? '<button class="feed-card__header-action" data-feed-action="request-delete-post" type="button">删除</button>' : ""}

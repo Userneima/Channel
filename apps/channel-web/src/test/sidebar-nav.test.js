@@ -144,7 +144,7 @@ describe("sidebar nav account menu", () => {
         expect(root.querySelector(".sidebar-nav__promo")).toBeTruthy();
     });
 
-    it("renders round navigation and switches between current and archived rounds", async () => {
+    it("renders round navigation and opens archive detail from archived rounds", async () => {
         dataService.getArchivedRoundDetail.mockResolvedValue({
             id: "archive-1",
             title: "2026.04.23 · 玄学测试",
@@ -196,7 +196,8 @@ describe("sidebar nav account menu", () => {
         await Promise.resolve();
         await Promise.resolve();
 
-        expect(store.getState().roundState.archiveViewerRoundId).toBe("archive-1");
+        expect(store.getState().overlayState.channelIntelligence.selectedArchiveId).toBe("archive-1");
+        expect(store.getState().overlayState.channelIntelligence.archiveDetailOpen).toBe(true);
 
         root.querySelector("[data-sidebar-round-kind='current']")?.click();
         await Promise.resolve();

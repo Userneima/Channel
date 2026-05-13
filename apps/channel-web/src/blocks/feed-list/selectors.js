@@ -199,6 +199,10 @@ export const selectFeedListVM = (state) => {
                 authorName: authorDisplay.authorName,
                 authorAvatar: authorDisplay.authorAvatar,
                 adminRevealIdentity: authorDisplay.adminRevealIdentity,
+                proxyWishSubmission: post.board === "wish" && post.wishMeta?.submissionSource === "proxy",
+                proxyWishLabel: post.board === "wish" && post.wishMeta?.submissionSource === "proxy"
+                    ? `由${String(post.wishMeta?.recordedByName || "上帝").trim()}代录`
+                    : "",
                 previewText: preview.text,
                 isTruncated: preview.isTruncated,
                 showFullEntry: preview.isTruncated && !post.isDeleted,

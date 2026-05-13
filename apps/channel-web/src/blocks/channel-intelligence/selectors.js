@@ -1,6 +1,12 @@
 import { defaultRoundDeadlines, gameBoardStages } from "../../entities/channel/config.js";
 import { isEntryOwnedByIdentity } from "../../shared/lib/anonymous-display.js";
-import { buildChannelMemberOptions, buildRoundDisplayTitle, buildRoundPrimaryLabel } from "../../features/round/model.js";
+import {
+    buildChannelMemberOptions,
+    buildMemberTask,
+    buildRoundDisplayTitle,
+    buildRoundPrimaryLabel,
+    findCurrentMemberStatus
+} from "../../features/round/model.js";
 
 const stageByValue = new Map(gameBoardStages.map((stage) => [stage.value, stage]));
 
@@ -157,6 +163,12 @@ export const selectChannelIntelligenceVM = (state) => {
     const revealEntry = state.roundState.revealMap?.[state.runtimeState.realIdentity.name] || null;
     const currentGuess = state.roundState.guessSelection;
     const taskStage = stageByValue.get(state.feedState.activeBoard) || currentStage;
+    const currentMemberStatus = findCurrentMemberStatus(state);
+    const memberTask = buildMemberTask({
+        isApproved: state.membershipState.status === "approved",
+        currentStage: taskStage,
+        currentMemberStatus
+    });
     const rawArchives = state.roundState.archives || [];
     const selectedArchiveId = state.overlayState.channelIntelligence.selectedArchiveId;
     const effectiveSelectedArchiveId = rawArchives.some((archive) => archive.id === selectedArchiveId)
@@ -256,16 +268,18 @@ export const selectChannelIntelligenceVM = (state) => {
         currentTaskLabel: taskStage.taskLabel,
         currentTaskStageLabel: taskStage.label,
         currentDeadlineLabel: getDeadlineLabel(deadlines[currentStage.value], currentStage.deadlineLabel),
-        currentTaskStatus: getTaskStatus(taskStage.value, currentTaskDone, taskStage.canCompose),
+        currentTaskStatus: memberTask.status || getTaskStatus(taskStage.value, currentTaskDone, taskStage.canCompose),
+        currentTaskTitle: memberTask.title || `${taskStage.label}阶段`,
+        currentTaskMeta: memberTask.meta || "",
         currentTaskHint: taskStage.value === "reveal"
             ? (
                 revealEntry?.angel
                     ? `你猜的是 ${currentGuess?.name || revealEntry.guessedAngelName || "未提交猜测"}，实际天使是 ${revealEntry.angel.name}。`
                     : "管理员一键生成揭晓结果后，这里会直接显示你的结果。"
             )
-            : taskStage.canCompose
+            : (memberTask.hint || (taskStage.canCompose
                 ? taskStage.helperText
-                : "这个阶段先不发帖，等后续对应能力补上。",
+                : "这个阶段先不发帖，等后续对应能力补上。")),
         archives,
         selectedArchive,
         archiveDialogArchive,

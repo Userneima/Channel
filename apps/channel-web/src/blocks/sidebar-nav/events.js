@@ -56,10 +56,11 @@ export const attachSidebarNavEvents = ({ root, actions }) => {
         actions.setSidebarOpen(false);
 
         if (roundKind === "archive") {
-            void actions.viewSelectedArchiveInBoard(roundId);
+            void actions.selectRoundArchive(roundId);
             return;
         }
 
+        actions.closeArchiveDetail?.();
         void actions.exitArchiveViewer();
     });
 };

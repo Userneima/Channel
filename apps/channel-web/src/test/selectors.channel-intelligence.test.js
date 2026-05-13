@@ -25,6 +25,21 @@ describe("channel view model selectors: channel intelligence", () => {
     it("builds round task summary for channel intelligence", () => {
         const state = createInitialState();
         state.roundState.activeStage = "delivery";
+        state.authState.status = "authenticated";
+        state.authState.user = { id: "user-1" };
+        state.membershipState.status = "approved";
+        state.runtimeState.realIdentity = {
+            ...state.runtimeState.realIdentity,
+            id: "identity-1",
+            name: "章鱼烧"
+        };
+        state.roundState.memberStatuses = [{
+            identityId: "identity-1",
+            userId: "user-1",
+            name: "章鱼烧",
+            claimSelected: true,
+            claimTargetName: "白榆"
+        }];
 
         const vm = selectChannelIntelligenceVM(state);
         expect(vm.currentStageLabel).toBe("交付");
@@ -35,6 +50,19 @@ describe("channel view model selectors: channel intelligence", () => {
         const state = createInitialState();
         state.roundState.activeStage = "delivery";
         state.feedState.activeBoard = "claim";
+        state.authState.status = "authenticated";
+        state.authState.user = { id: "user-1" };
+        state.membershipState.status = "approved";
+        state.runtimeState.realIdentity = {
+            ...state.runtimeState.realIdentity,
+            id: "identity-1",
+            name: "章鱼烧"
+        };
+        state.roundState.memberStatuses = [{
+            identityId: "identity-1",
+            userId: "user-1",
+            name: "章鱼烧"
+        }];
 
         const vm = selectChannelIntelligenceVM(state);
         expect(vm.currentTaskStageLabel).toBe("选愿望");
@@ -46,6 +74,21 @@ describe("channel view model selectors: channel intelligence", () => {
         state.roundState.activeStage = "delivery";
         state.authState.status = "authenticated";
         state.authState.user = { id: "user-1" };
+        state.membershipState.status = "approved";
+        state.runtimeState.realIdentity = {
+            ...state.runtimeState.realIdentity,
+            id: "identity-1",
+            name: "章鱼烧"
+        };
+        state.roundState.memberStatuses = [{
+            identityId: "identity-1",
+            userId: "user-1",
+            name: "章鱼烧",
+            claimSelected: true,
+            claimTargetName: "白榆",
+            deliverySubmitted: true,
+            deliveryTargetName: "白榆"
+        }];
         state.feedState.items = [
             {
                 id: "delivery-1",
@@ -67,11 +110,18 @@ describe("channel view model selectors: channel intelligence", () => {
         state.roundState.activeStage = "wish";
         state.authState.status = "authenticated";
         state.authState.user = { id: "user-owner" };
+        state.membershipState.status = "approved";
         state.runtimeState.realIdentity = {
             ...state.runtimeState.realIdentity,
             id: "identity-current",
             name: "章鱼烧"
         };
+        state.roundState.memberStatuses = [{
+            identityId: "identity-current",
+            userId: "user-owner",
+            name: "章鱼烧",
+            wishSubmitted: false
+        }];
         state.feedState.items = [
             {
                 id: "wish-seeded-1",
@@ -99,12 +149,24 @@ describe("channel view model selectors: channel intelligence", () => {
     it("builds reveal result and reveal pairs for channel intelligence", () => {
         const state = createInitialState();
         state.roundState.activeStage = "reveal";
+        state.authState.status = "authenticated";
+        state.authState.user = { id: "user-1" };
+        state.membershipState.status = "approved";
         state.runtimeState.realIdentity = {
             ...state.runtimeState.realIdentity,
+            id: "identity-1",
             name: "章鱼烧",
             avatar: "octopus-avatar",
             role: "owner"
         };
+        state.roundState.memberStatuses = [{
+            identityId: "identity-1",
+            userId: "user-1",
+            name: "章鱼烧",
+            revealReady: true,
+            guessedCorrectly: true,
+            revealedAngelName: "海屿"
+        }];
         state.roundState.guessSelection = {
             name: "海屿",
             avatar: "haiyu-avatar"
@@ -123,7 +185,7 @@ describe("channel view model selectors: channel intelligence", () => {
         };
 
         const vm = selectChannelIntelligenceVM(state);
-        expect(vm.currentTaskStatus).toBe("已完成");
+        expect(vm.currentTaskStatus).toBe("已揭晓");
         expect(vm.revealPairs).toHaveLength(1);
         expect(vm.revealResult?.actualName).toBe("海屿");
     });

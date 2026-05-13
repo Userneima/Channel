@@ -630,7 +630,9 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                     participantUserId: proxyWishTarget?.userId || state.authState.user?.id || null,
                     participantName: proxyWishTarget?.name || state.runtimeState.realIdentity.name,
                     participantAvatar: proxyWishTarget?.avatar || state.runtimeState.realIdentity.avatar || "",
-                    submissionSource: proxyWishTarget ? "proxy" : "self"
+                    submissionSource: proxyWishTarget ? "proxy" : "self",
+                    recordedByUserId: proxyWishTarget ? (state.authState.user?.id || null) : null,
+                    recordedByName: proxyWishTarget ? state.runtimeState.realIdentity.name : ""
                 }
                 : null;
             const publishedImages = anonymousMode

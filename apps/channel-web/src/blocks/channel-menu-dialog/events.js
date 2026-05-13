@@ -35,9 +35,9 @@ export const attachChannelMenuDialogEvents = ({ root, actions }) => {
         }
 
         if (action === "notification-settings") {
-            actions.showToast({
-                tone: "info",
-                message: "消息通知设置后面再接，这一版先恢复菜单结构。"
+            actions.closeOverlay("channel-menu");
+            actions.openOverlay("notification-center", {
+                tab: "interaction"
             });
             return;
         }

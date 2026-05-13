@@ -34,6 +34,7 @@ export const selectSidebarNavVM = (state) => {
         startedAt: state.roundState.startedAt
     });
     const archiveViewerRoundId = state.roundState.archiveViewerRoundId || null;
+    const selectedArchiveId = state.overlayState.channelIntelligence.selectedArchiveId || null;
     const roundItems = [];
 
     if (currentChannel) {
@@ -51,7 +52,7 @@ export const selectSidebarNavVM = (state) => {
             metaRight: currentRoundCopy.metaRight,
             badge: "今",
             avatar: currentChannel.logoUrl || channelShellConfig.channelLogo,
-            active: !archiveViewerRoundId,
+            active: !archiveViewerRoundId && !selectedArchiveId,
             kind: "current"
         });
     }
@@ -72,7 +73,7 @@ export const selectSidebarNavVM = (state) => {
             metaRight: archiveRoundCopy.metaRight,
             badge: "档",
             avatar: currentChannel?.logoUrl || channelShellConfig.channelLogo,
-            active: archiveViewerRoundId === archive.id,
+            active: archiveViewerRoundId === archive.id || selectedArchiveId === archive.id,
             kind: "archive"
         });
     });

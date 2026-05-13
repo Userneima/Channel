@@ -188,28 +188,6 @@ export const channelIntelligenceArchiveDialogTemplate = (vm) => vm.archiveDetail
     </div>
 ` : "";
 
-const buildArchives = (vm) => `
-    <section class="channel-intelligence__archives">
-        <div class="channel-intelligence__task-head">
-            <span>往期回合</span>
-            <span>${escapeHtml(vm.archives.length)}</span>
-        </div>
-        ${vm.archives.length ? `
-            <div class="channel-intelligence__archive-list">
-                ${vm.archives.map((archive) => `
-                    <button class="channel-intelligence__archive-card ${archive.isSelected ? "is-selected" : ""}" data-channel-intelligence-archive="${escapeHtml(archive.id)}" type="button">
-                        <span class="channel-intelligence__archive-title">${escapeHtml(archive.displayTitle)}</span>
-                        <span class="channel-intelligence__archive-meta">${escapeHtml(archive.metaLine)}</span>
-                        <span class="channel-intelligence__archive-open">查看详情</span>
-                    </button>
-                `).join("")}
-            </div>
-        ` : `
-            <div class="channel-intelligence__archive-empty">结束当前回合后，历史记录会留在这里，也会同步出现在左侧轮次列表里。</div>
-        `}
-    </section>
-`;
-
 export const channelIntelligenceTemplate = (vm) => `
     <section class="channel-intelligence">
         <header class="channel-intelligence__header">
@@ -274,9 +252,10 @@ export const channelIntelligenceTemplate = (vm) => `
                     <span>我的待办</span>
                     <span>${escapeHtml(vm.currentTaskStatus)}</span>
                 </div>
-                <div class="channel-intelligence__task-title">${escapeHtml(vm.currentTaskStageLabel)}阶段</div>
+                <div class="channel-intelligence__task-title">${escapeHtml(vm.currentTaskTitle)}</div>
+                ${vm.currentTaskMeta ? `<div class="channel-intelligence__task-meta">${escapeHtml(vm.currentTaskMeta)}</div>` : ""}
+                ${vm.currentTaskHint ? `<div class="channel-intelligence__task-hint">${escapeHtml(vm.currentTaskHint)}</div>` : ""}
             </section>
-            ${buildArchives(vm)}
         </header>
     </section>
 `;

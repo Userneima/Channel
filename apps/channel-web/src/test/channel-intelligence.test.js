@@ -224,7 +224,7 @@ describe("channel intelligence block", () => {
         dialogRoot.remove();
     });
 
-    it("renders archived rounds and lets the user switch the selected archive", () => {
+    it("removes the archive list from the sidebar block but still renders archive detail dialogs", () => {
         const root = document.createElement("div");
         const dialogRoot = document.createElement("div");
         document.body.append(root);
@@ -267,20 +267,13 @@ describe("channel intelligence block", () => {
         const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
 
-        expect(root.textContent).toContain("往期回合");
-        expect(root.textContent).toContain("玄学测试");
-        expect(root.textContent).toContain("1 对揭晓");
-        expect(root.textContent).not.toContain("2026.04.23 · 玄学测试");
-        expect(root.textContent).not.toContain("希望有人帮我整理玄学学习目录");
-
-        root.querySelector("[data-channel-intelligence-archive='archive-1']").click();
-        expect(actions.selectRoundArchive).toHaveBeenCalledWith("archive-1");
+        expect(root.textContent).not.toContain("往期回合");
+        expect(root.textContent).not.toContain("玄学测试");
+        expect(root.textContent).not.toContain("1 对揭晓");
 
         store.dispatch({
             type: "channel-intelligence/set-field",
-            payload: {
-                archiveDetailOpen: true
-            }
+            payload: { archiveDetailOpen: true }
         });
         block.render();
 
@@ -288,6 +281,91 @@ describe("channel intelligence block", () => {
         expect(dialogRoot.textContent).toContain("希望有人帮我整理玄学学习目录");
         expect(dialogRoot.textContent).toContain("删除记录");
         expect(dialogRoot.textContent).toContain("导出备份");
+
+        root.remove();
+        dialogRoot.remove();
+    });
+
+    it("shows proxy wish task copy when the current user was recorded by the god", () => {
+        const root = document.createElement("div");
+        const dialogRoot = document.createElement("div");
+        document.body.append(root);
+        document.body.append(dialogRoot);
+        const store = createStore();
+        const actions = createActions();
+
+        store.dispatch({
+            type: "auth/set-state",
+            payload: {
+                status: "authenticated",
+                user: { id: "user-1", email: "member@example.com" }
+            }
+        });
+        store.dispatch({
+            type: "membership/set-state",
+            payload: {
+                status: "approved",
+                joinRequest: null,
+                reviewItems: [],
+                directoryItems: [],
+                directoryStatus: "idle",
+                directoryError: null,
+                mutationStatus: "idle",
+                activeMemberId: null,
+                reviewStatus: "idle",
+                submitStatus: "idle",
+                error: null
+            }
+        });
+        store.dispatch({
+            type: "runtime/update-identity",
+            payload: {
+                identity: {
+                    id: "identity-1",
+                    name: "章鱼烧",
+                    role: "member"
+                }
+            }
+        });
+        store.dispatch({
+            type: "round/set-current-round",
+            payload: {
+                round: {
+                    id: "round-1",
+                    lifecycleStatus: "active",
+                    title: "解压",
+                    defaultTitle: "2026.05.13 · 解压",
+                    theme: "解压",
+                    currentStage: "wish",
+                    deadlines: {},
+                    revealMap: {},
+                    godProfile: {
+                        userId: "user-god",
+                        name: "海屿",
+                        avatar: "god-avatar"
+                    }
+                }
+            }
+        });
+        store.dispatch({
+            type: "round/set-member-statuses",
+            payload: {
+                items: [{
+                    identityId: "identity-1",
+                    userId: "user-1",
+                    name: "章鱼烧",
+                    wishSubmitted: true,
+                    wishSubmissionSource: "proxy",
+                    wishRecordedByName: "海屿"
+                }]
+            }
+        });
+
+        const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
+        block.render();
+
+        expect(root.textContent).toContain("上帝已代你记录本轮愿望");
+        expect(root.textContent).toContain("海屿 已帮你补录愿望");
 
         root.remove();
         dialogRoot.remove();
@@ -315,12 +393,19 @@ describe("channel intelligence block", () => {
                 }]
             }
         });
+        store.dispatch({
+            type: "channel-intelligence/set-field",
+            payload: {
+                selectedArchiveId: "archive-2",
+                archiveDetailOpen: true
+            }
+        });
 
         const block = mountChannelIntelligenceBlock({ root, dialogRoot, store, actions });
         block.render();
 
-        expect(root.textContent).toContain("解压");
-        expect(root.textContent).not.toContain("2026.04.23 · 解压");
+        expect(dialogRoot.textContent).toContain("解压");
+        expect(dialogRoot.textContent).not.toContain("2026.04.23 · 解压");
 
         root.remove();
         dialogRoot.remove();

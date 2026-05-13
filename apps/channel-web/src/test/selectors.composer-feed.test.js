@@ -309,4 +309,27 @@ describe("channel view model selectors: composer/feed", () => {
             avatar: "test-avatar"
         }]);
     });
+
+    it("marks proxy wish posts with a visible recorder label", () => {
+        const state = createInitialState();
+        state.feedState.status = "ready";
+        state.feedState.activeBoard = "wish";
+        state.feedState.items = [{
+            id: "wish-1",
+            board: "wish",
+            authorName: "白榆",
+            authorAvatar: "alias-avatar",
+            authorUserId: "user-2",
+            text: "希望有人帮我梳理本周计划",
+            wishMeta: {
+                submissionSource: "proxy",
+                recordedByName: "章鱼烧"
+            },
+            comments: []
+        }];
+
+        const vm = selectFeedListVM(state);
+        expect(vm.items[0].proxyWishSubmission).toBe(true);
+        expect(vm.items[0].proxyWishLabel).toBe("由章鱼烧代录");
+    });
 });

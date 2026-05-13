@@ -313,8 +313,12 @@ export const buildMemberTask = ({ isApproved, currentStage, currentMemberStatus 
         return currentMemberStatus.wishSubmitted
             ? {
                 status: "已完成",
-                title: "你已经完成本轮许愿",
-                meta: "系统已记录你的匿名愿望，等待管理员切到选愿望阶段。",
+                title: currentMemberStatus.wishSubmissionSource === "proxy"
+                    ? "上帝已代你记录本轮愿望"
+                    : "你已经完成本轮许愿",
+                meta: currentMemberStatus.wishSubmissionSource === "proxy"
+                    ? `${currentMemberStatus.wishRecordedByName || "当前上帝"} 已帮你补录愿望，你会继续参与这轮后续流程。`
+                    : "系统已记录你的匿名愿望，等待管理员切到选愿望阶段。",
                 hint: currentStage.helperText
             }
             : {

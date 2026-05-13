@@ -1,6 +1,6 @@
 import { escapeHtml } from "../../shared/lib/helpers.js";
 
-const buildNotificationItem = (item, showActions = true) => `
+const buildNotificationItem = (item) => `
     <article class="notification-center__item">
         <img alt="${escapeHtml(item.userName)}" class="notification-center__avatar" src="${item.avatar}" />
         <div class="notification-center__item-body">
@@ -10,18 +10,6 @@ const buildNotificationItem = (item, showActions = true) => `
             </div>
             <div class="notification-center__item-action">${escapeHtml(item.actionLine)}</div>
             <div class="notification-center__quote">${escapeHtml(item.quoteLine)}</div>
-            ${showActions ? `
-                <div class="notification-center__actions">
-                    <button class="notification-center__pill" type="button">
-                        <span class="material-icons-outlined">favorite_border</span>
-                        <span>${escapeHtml(item.primaryAction || "赞")}</span>
-                    </button>
-                    <button class="notification-center__pill" type="button">
-                        <span class="material-icons-outlined">chat_bubble_outline</span>
-                        <span>${escapeHtml(item.secondaryAction || "回复")}</span>
-                    </button>
-                </div>
-            ` : ""}
         </div>
     </article>
 `;
@@ -39,11 +27,19 @@ export const notificationCenterTemplate = (vm) => `
                         type="button"
                     >
                         ${escapeHtml(tab.label)}
+                        ${typeof tab.count === "number" ? `<span class="notification-center__tab-count">${tab.count}</span>` : ""}
                     </button>
                 `).join("")}
             </div>
             <div class="notification-center__list">
-                ${vm.items.map((item) => buildNotificationItem(item, vm.activeTab === "interaction")).join("")}
+                ${vm.items.length
+        ? vm.items.map((item) => buildNotificationItem(item)).join("")
+        : `
+                    <div class="notification-center__empty">
+                        <div class="notification-center__empty-title">${escapeHtml(vm.emptyTitle)}</div>
+                        <div class="notification-center__empty-copy">${escapeHtml(vm.emptyDescription)}</div>
+                    </div>
+                `}
             </div>
         </div>
     </div>

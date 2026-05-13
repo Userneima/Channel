@@ -409,6 +409,17 @@
     font-size: 0.92rem;
 }
 
+.feed-card__proxy-note {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.18rem 0.48rem;
+    border-radius: 999px;
+    background: rgba(92, 124, 255, 0.08);
+    color: var(--color-accent-strong);
+    font-size: 0.72rem;
+}
+
 .feed-card__admin-reveal {
     display: inline-flex;
     align-items: center;
