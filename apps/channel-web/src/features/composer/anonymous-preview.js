@@ -1,4 +1,4 @@
-import { anonymizeComposerText } from "../../shared/lib/helpers.js";
+import { anonymizeComposerText, looksLikeAnsweredPromptInsteadOfRewrite } from "../../shared/lib/helpers.js";
 
 export const createAnonymousPreviewController = ({ store, dataService, resolveAnonymousComposerMode }) => {
     let anonymousPreviewTimer = null;
@@ -46,7 +46,11 @@ export const createAnonymousPreviewController = ({ store, dataService, resolveAn
                 images: [],
                 reshapeImages: false
             });
-            return String(draft?.text || anonymizeComposerText(normalizedText)).trim();
+            const rewrittenText = String(draft?.text || "").trim();
+            if (rewrittenText && !looksLikeAnsweredPromptInsteadOfRewrite(normalizedText, rewrittenText)) {
+                return rewrittenText;
+            }
+            return anonymizeComposerText(normalizedText);
         } catch {
             return anonymizeComposerText(normalizedText);
         }

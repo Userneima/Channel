@@ -5,6 +5,7 @@ import {
     createImageDraftFromFile,
     generateAnonymousPersona,
     getChannelActionErrorMessage,
+    looksLikeAnsweredPromptInsteadOfRewrite,
     processAnonymousImageForPost,
     revokeComposerAudioDraft,
     revokeImageDrafts
@@ -196,6 +197,9 @@ export const createComposerPostActions = ({
                         : await refreshAnonymousPreview({ immediate: true, force: true })
                 )
                 : "";
+            const safePreviewText = previewText && !looksLikeAnsweredPromptInsteadOfRewrite(rawText, previewText)
+                ? previewText
+                : "";
             const anonymizedDraft = anonymousMode && shouldAiReshapeImages
                 ? await dataService.anonymizeAnonymousDraft?.({
                     text: rawText,
@@ -207,7 +211,7 @@ export const createComposerPostActions = ({
                 : null;
             const publishedText = anonymousMode
                 ? (rewriteAnonymousText
-                    ? (previewText || anonymizeComposerText(rawText))
+                    ? (safePreviewText || anonymizeComposerText(rawText))
                     : rawText)
                 : rawText;
             const publishedBody = mentionTarget

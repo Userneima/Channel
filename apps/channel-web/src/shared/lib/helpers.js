@@ -181,6 +181,44 @@ export const anonymizeComposerText = (rawText) => rawText
     .join("\n")
     .trim();
 
+const bulletPattern = /^([-*•]|\d+[.)])\s+/;
+
+export const looksLikeAnsweredPromptInsteadOfRewrite = (sourceText, rewrittenText) => {
+    const source = String(sourceText || "").trim();
+    const rewritten = String(rewrittenText || "").trim();
+
+    if (!source || !rewritten) {
+        return false;
+    }
+
+    const sourceLines = source.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const rewrittenLines = rewritten.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const sourceHasBullets = sourceLines.some((line) => bulletPattern.test(line));
+    const rewrittenBulletCount = rewrittenLines.filter((line) => bulletPattern.test(line)).length;
+    const sourceLength = source.length;
+    const rewrittenLength = rewritten.length;
+    const sourceLooksLikeRequest = /[？?]|(^|[\s，。])请|推荐|帮我|有没有|怎么|什么|为何|为什么/.test(source);
+    const rewrittenLooksLikeAdvice = /可以|建议|适合|如果|比如|试试|推荐|下面|如下/.test(rewritten);
+
+    if (sourceLength <= 80 && rewrittenLength >= Math.max(sourceLength * 2.2, 140)) {
+        return true;
+    }
+
+    if (!sourceHasBullets && rewrittenBulletCount >= 2) {
+        return true;
+    }
+
+    if (
+        sourceLooksLikeRequest
+        && rewrittenLooksLikeAdvice
+        && rewrittenLength >= Math.max(sourceLength * 1.8, sourceLength + 80)
+    ) {
+        return true;
+    }
+
+    return false;
+};
+
 export const loadComposerImage = (url) => new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);

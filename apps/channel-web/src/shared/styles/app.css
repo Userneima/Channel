@@ -62,10 +62,6 @@ body.app-scroll-locked {
     top: 6.75rem;
 }
 
-.channel-page--condensed .channel-page__aside {
-    top: 4.85rem;
-}
-
 .channel-page__join:empty,
 .channel-page__review:empty {
     display: none;
@@ -88,86 +84,9 @@ body.app-scroll-locked {
     padding-bottom: 0.1rem;
 }
 
-.channel-page--condensed .channel-page__top-inner {
-    padding-bottom: 0;
-}
-
 .channel-page--condensed .channel-page__top-region {
     background: rgba(var(--color-page-rgb), 0.94);
     border-bottom: 1px solid rgba(var(--color-border-rgb), 0.18);
-}
-
-.channel-page--condensed .channel-hero {
-    margin-bottom: 0;
-    padding: 0.4rem 0;
-    border-color: transparent;
-    border-radius: 0;
-    background: transparent;
-}
-
-.channel-page--condensed .channel-hero::after {
-    opacity: 0;
-}
-
-.channel-page--condensed .channel-hero__logo-shell {
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0.14rem;
-    border-radius: 0.85rem;
-}
-
-.channel-page--condensed .channel-hero__logo {
-    border-radius: 0.7rem;
-}
-
-.channel-page--condensed .channel-hero__content,
-.channel-page--condensed .channel-hero__identity,
-.channel-page--condensed .channel-hero__meta {
-    min-height: 2.75rem;
-}
-
-.channel-page--condensed .channel-hero__meta {
-    display: flex;
-    align-items: center;
-}
-
-.channel-page--condensed .channel-hero__title {
-    font-size: 1.25rem;
-    margin-bottom: 0;
-    line-height: 1;
-}
-
-.channel-page--condensed .channel-hero__subtitle {
-    display: none;
-}
-
-.channel-page--condensed .channel-hero__actions {
-    gap: var(--space-3);
-}
-
-.channel-page--condensed .channel-hero__icon {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0;
-    background: transparent;
-    border-color: transparent;
-}
-
-.channel-page--condensed .composer-panel {
-    opacity: 0;
-    max-height: 0;
-    min-height: 0;
-    overflow: hidden;
-    margin-bottom: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    border-color: transparent;
-    pointer-events: none;
-    margin-bottom: 0;
-}
-
-.channel-page--condensed .channel-page__tabs {
-    margin-top: -0.25rem;
 }
 
 .channel-page--condensed .board-tabs__quick-compose {
