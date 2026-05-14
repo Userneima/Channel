@@ -17,6 +17,15 @@ export const createCacheApi = (context) => ({
         const channel = context.normalizeChannel(cachedChannel || context.createFallbackChannelRow(slug));
         context.runtimeState.channel = cachedChannel || context.createFallbackChannelRow(slug);
 
+        const cachedMembership = cachedMember?.membership?.status === "approved" && cachedMember?.membership?.identityId
+            ? cachedMember.membership
+            : {
+                status: "guest",
+                joinRequest: null,
+                reviewItems: [],
+                role: null
+            };
+
         return {
             channel,
             auth: {
@@ -24,12 +33,7 @@ export const createCacheApi = (context) => ({
                 isAnonymous: snapshot.isAnonymous,
                 profile: null
             },
-            membership: cachedMember?.membership || {
-                status: "guest",
-                joinRequest: null,
-                reviewItems: [],
-                role: null
-            },
+            membership: cachedMembership,
             memberRuntime: cachedMember?.memberRuntime || null
         };
     },

@@ -61,6 +61,45 @@ describe("channel feature actions: runtime/auth/membership", () => {
         expect(dataService.listPosts).not.toHaveBeenCalled();
     });
 
+    it("collapses stale pending membership cache back to guest when approval flow is disabled", async () => {
+        dataService.getCachedChannelBootstrap.mockResolvedValue({
+            channel: approvedRuntime.channel,
+            auth: {
+                user: { id: "user-2", email: "guest@example.com" },
+                isAnonymous: false,
+                profile: null
+            },
+            membership: {
+                status: "pending",
+                joinRequest: { id: "request-1" },
+                reviewItems: [],
+                role: null
+            },
+            memberRuntime: null
+        });
+        dataService.loadChannelBootstrap.mockResolvedValue({
+            channel: approvedRuntime.channel,
+            auth: {
+                user: { id: "user-2", email: "guest@example.com" },
+                isAnonymous: false,
+                profile: null
+            },
+            membership: {
+                status: "guest",
+                joinRequest: null,
+                reviewItems: [],
+                role: null
+            },
+            memberRuntime: null
+        });
+
+        await actions.initializeChannelRuntime();
+
+        const state = store.getState();
+        expect(state.authState.status).toBe("authenticated");
+        expect(state.membershipState.status).toBe("guest");
+    });
+
     it("logs in with password and refreshes approved runtime", async () => {
         store.dispatch({
             type: "auth/set-field",

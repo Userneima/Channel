@@ -19,6 +19,14 @@ const getGuestMembershipState = () => ({
     error: null
 });
 
+const normalizeMembershipState = (membership) => {
+    if (membership?.status === "approved") {
+        return membership;
+    }
+
+    return getGuestMembershipState();
+};
+
 const getPreferredBoard = (channel, fallbackBoard = "all") => (
     channel?.currentRoundStage
     || channel?.current_round_stage
@@ -82,7 +90,7 @@ const applyBootstrapSnapshot = ({ store, bootstrap, source = "network", phase = 
         }
     });
 
-    const membership = bootstrap.membership || getGuestMembershipState();
+    const membership = normalizeMembershipState(bootstrap.membership);
     const currentMembershipState = store.getState().membershipState;
     store.dispatch({
         type: "membership/set-state",
@@ -143,7 +151,7 @@ export const createRuntimeActions = ({ store, dataService, showToast, feedAction
             };
         }
 
-        const membership = await dataService.loadMembershipState(channelId);
+        const membership = normalizeMembershipState(await dataService.loadMembershipState(channelId));
         const currentMembershipState = store.getState().membershipState;
         store.dispatch({
             type: "membership/set-state",
