@@ -16,11 +16,11 @@ export const resetMemberRuntime = (draft) => {
     draft.roundState.progress.guessSubmitted = false;
     draft.composerState.expanded = false;
     draft.composerState.anonymousMode = false;
-    draft.composerState.anonymousTextRewrite = false;
+    draft.composerState.anonymousTextRewrite = true;
     draft.composerState.anonymousPreviewStatus = "idle";
     draft.composerState.anonymousPreviewText = "";
     draft.composerState.anonymousPreviewSourceText = "";
-    draft.composerState.aiImageReshape = false;
+    draft.composerState.aiImageReshape = true;
 };
 
 const resetRoundArchives = (draft) => {

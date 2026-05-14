@@ -105,15 +105,35 @@
 
 @media (max-width: 720px) {
     .channel-hero {
-        padding: var(--space-6);
+        padding: 0.9rem 1rem;
     }
 
     .channel-hero__content {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.85rem;
+    }
+
+    .channel-hero__identity {
+        width: 100%;
+    }
+
+    .channel-hero__title {
+        font-size: 1.18rem;
+    }
+
+    .channel-hero__subtitle {
+        font-size: 0.84rem;
     }
 
     .channel-hero__actions {
+        width: 100%;
         flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .channel-hero__icon {
+        width: 2.2rem;
+        height: 2.2rem;
     }
 }

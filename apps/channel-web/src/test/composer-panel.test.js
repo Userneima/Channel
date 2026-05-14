@@ -281,6 +281,23 @@ describe("composer panel interactions", () => {
         expect(root.querySelector(".composer-panel__anonymous-avatar")).toBeNull();
     });
 
+    it("defaults anonymous assist toggles to enabled in forced anonymous stages", () => {
+        store.dispatch({
+            type: "round/set-stage",
+            payload: { stage: "wish", forceAnonymous: true }
+        });
+        store.dispatch({
+            type: "composer/expand"
+        });
+
+        block.render();
+
+        expect(store.getState().composerState.anonymousTextRewrite).toBe(true);
+        expect(store.getState().composerState.aiImageReshape).toBe(true);
+        expect(root.querySelector("[data-ref='anonymous-text-rewrite']")?.checked).toBe(true);
+        expect(root.querySelector("[data-ref='ai-image-reshape']")?.checked).toBe(true);
+    });
+
     it("opens the emoji picker and inserts the selected emoji into the draft", async () => {
         store.dispatch({ type: "composer/expand" });
         store.dispatch({

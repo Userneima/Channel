@@ -61,6 +61,7 @@ export const applyRoundActions = (draft, action) => {
             draft.composerState.anonymousMode = true;
             draft.composerState.aiDisclosure = "none";
             draft.composerState.aiDisclosureOpen = false;
+            draft.composerState.anonymousTextRewrite = true;
             draft.composerState.aiImageReshape = true;
         }
         return true;

@@ -101,11 +101,32 @@ body.app-scroll-locked {
     }
 
     .channel-app__main {
-        padding-top: 4.5rem;
+        padding: 4rem var(--space-4) var(--space-8);
+    }
+
+    .channel-app__content {
+        max-width: none;
+    }
+
+    .channel-page__scroll {
+        padding-top: 0.65rem;
+    }
+
+    .channel-page__top-region {
+        position: static;
+        background: transparent;
+        backdrop-filter: none;
     }
 
     .channel-page__layout {
         grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-4);
+        padding-bottom: var(--space-7);
+    }
+
+    .channel-page__main,
+    .channel-page__aside {
+        gap: var(--space-3);
     }
 
     .channel-page__aside {
@@ -116,7 +137,15 @@ body.app-scroll-locked {
 
 @media (max-width: 720px) {
     .channel-app__main {
-        padding-left: var(--space-4);
-        padding-right: var(--space-4);
+        padding: 3.8rem var(--space-3) var(--space-6);
+    }
+
+    .channel-page__scroll {
+        padding-top: 0.45rem;
+    }
+
+    .channel-page__layout {
+        gap: var(--space-3);
+        padding-bottom: var(--space-6);
     }
 }

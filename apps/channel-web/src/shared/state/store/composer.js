@@ -45,11 +45,11 @@ export const applyComposerActions = (draft, action) => {
         draft.composerState.proxyWishTarget = null;
         draft.composerState.aiDisclosure = "none";
         draft.composerState.board = "none";
-        draft.composerState.anonymousTextRewrite = false;
+        draft.composerState.anonymousTextRewrite = true;
         draft.composerState.anonymousPreviewStatus = "idle";
         draft.composerState.anonymousPreviewText = "";
         draft.composerState.anonymousPreviewSourceText = "";
-        draft.composerState.aiImageReshape = false;
+        draft.composerState.aiImageReshape = true;
         draft.composerState.submitStatus = "idle";
         draft.composerState.error = null;
         draft.composerState.mentionOpen = false;
@@ -65,6 +65,7 @@ export const applyComposerActions = (draft, action) => {
         if (draft.composerState.anonymousMode) {
             draft.composerState.aiDisclosure = "none";
             draft.composerState.aiDisclosureOpen = false;
+            draft.composerState.anonymousTextRewrite = true;
             draft.composerState.aiImageReshape = true;
         } else {
             draft.composerState.anonymousTextRewrite = false;
