@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createActionsHarness, seedApprovedViewer } from "../../test-support/actions-fixture.js";
 
 describe("channel feature actions: feed/comments", () => {
@@ -227,5 +227,35 @@ describe("channel feature actions: feed/comments", () => {
 
         expect(store.getState().feedState.searchQuery).toBe("苹果");
         expect(dataService.listPosts).not.toHaveBeenCalled();
+    });
+
+    it("shares a post through the system share API when available", async () => {
+        seedApprovedViewer(store);
+        store.dispatch({
+            type: "feed/load-success",
+            payload: {
+                items: [{
+                    id: "post-1",
+                    authorName: "章鱼烧",
+                    text: "这是一条想分享出去的帖子",
+                    comments: [],
+                    likes: 0,
+                    shares: 0
+                }]
+            }
+        });
+
+        const shareSpy = vi.fn().mockResolvedValue(undefined);
+        Object.defineProperty(window.navigator, "share", {
+            configurable: true,
+            value: shareSpy
+        });
+
+        await actions.sharePost("post-1");
+
+        expect(shareSpy).toHaveBeenCalledWith(expect.objectContaining({
+            title: expect.stringContaining("频道内容"),
+            text: expect.stringContaining("这是一条想分享出去的帖子")
+        }));
     });
 });

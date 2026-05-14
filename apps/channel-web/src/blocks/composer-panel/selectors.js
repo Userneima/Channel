@@ -2,6 +2,7 @@ import { channelBoardChoices, channelShellConfig, gameBoardStages } from "../../
 import { composerIdentityPresets } from "../../entities/identity/config.js";
 import { composerCapabilityRegistry } from "../../features/composer/registry.js";
 import { buildChannelMemberOptions, buildRevealPairs, buildRevealResult, getRoundStage } from "../../features/round/model.js";
+import { composerEmojiGroups } from "../../shared/config/emoji-catalog.js";
 import { anonymizeComposerText } from "../../shared/lib/helpers.js";
 
 const aiDisclosureChoices = [
@@ -204,6 +205,8 @@ export const selectComposerPanelVM = (state) => {
         proxyWishOpen: canProxyWish ? state.composerState.proxyWishOpen : false,
         proxyWishMembers,
         canProxyWish,
+        emojiOpen: state.composerState.emojiOpen,
+        emojiGroups: composerEmojiGroups,
         charCount: draftText.length,
         aiDisclosure: state.composerState.aiDisclosure,
         aiDisclosureChoices,

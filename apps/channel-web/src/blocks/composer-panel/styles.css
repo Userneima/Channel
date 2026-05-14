@@ -277,6 +277,10 @@
     position: relative;
 }
 
+.composer-panel__emoji-wrap {
+    position: relative;
+}
+
 .composer-panel__mention-trigger.has-target {
     color: var(--color-accent-strong);
     background: rgba(92, 124, 255, 0.08);
@@ -299,6 +303,58 @@
 
 .composer-panel__mention-menu.is-open {
     display: grid;
+}
+
+.composer-panel__emoji-menu {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    left: 0;
+    z-index: 4;
+    width: min(19rem, calc(100vw - 2rem));
+    display: none;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-floating);
+}
+
+.composer-panel__emoji-menu.is-open {
+    display: grid;
+}
+
+.composer-panel__emoji-group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.composer-panel__emoji-group-title {
+    color: var(--color-text-muted);
+    font-size: 0.76rem;
+}
+
+.composer-panel__emoji-items {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.composer-panel__emoji-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 0.8rem;
+    background: var(--color-surface-strong);
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.composer-panel__emoji-option:hover {
+    background: rgba(53, 39, 25, 0.05);
 }
 
 .composer-panel__mention-title {
@@ -800,6 +856,9 @@
 }
 
 .composer-panel__footer-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
     margin-left: auto;
 }
 
@@ -980,8 +1039,18 @@
         width: min(18rem, calc(100vw - 3rem));
     }
 
+    .composer-panel__emoji-menu {
+        left: auto;
+        right: 0;
+        width: min(18rem, calc(100vw - 1.5rem));
+    }
+
     .composer-panel__anonymous-head {
         flex-wrap: wrap;
+    }
+
+    .composer-panel__emoji-items {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 
     .composer-panel__media-grid {

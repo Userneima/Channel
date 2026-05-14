@@ -32,6 +32,7 @@ export const attachFeedListEvents = ({ root, store, actions }) => {
         const imageButton = event.target.closest("[data-feed-action='open-image']");
         const relatedPostButton = event.target.closest("[data-feed-action='open-related-post']");
         const likeButton = event.target.closest("[data-feed-action='like-post']");
+        const shareButton = event.target.closest("[data-feed-action='share-post']");
         const claimButton = event.target.closest("[data-feed-action='claim-wish']");
         const deleteButton = event.target.closest("[data-feed-action='request-delete-post']");
         if (claimButton) {
@@ -51,6 +52,16 @@ export const attachFeedListEvents = ({ root, store, actions }) => {
             }
 
             void actions.likePost(article.dataset.postId);
+            return;
+        }
+
+        if (shareButton) {
+            const article = shareButton.closest("[data-post-id]");
+            if (!article) {
+                return;
+            }
+
+            void actions.sharePost?.(article.dataset.postId);
             return;
         }
 

@@ -107,8 +107,11 @@ export const createInitialState = () => ({
         error: null,
         mentionOpen: false,
         proxyWishOpen: false,
+        emojiOpen: false,
         aiDisclosureOpen: false,
-        boardOpen: false
+        boardOpen: false,
+        selectionStart: 0,
+        selectionEnd: 0
     },
     overlayState: {
         comments: {

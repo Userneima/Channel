@@ -256,7 +256,7 @@ const buildPostCard = (post) => `
                 <span class="material-icons-outlined">chat_bubble_outline</span>
                 <span>${post.comments.length > 0 ? post.comments.length : "评论"}</span>
             </button>
-            <button class="feed-card__action" type="button">
+            <button class="feed-card__action" data-feed-action="share-post" type="button">
                 <span class="material-icons-outlined">share</span>
                 <span>${post.shares > 0 ? post.shares : "分享"}</span>
             </button>

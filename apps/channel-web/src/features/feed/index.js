@@ -1,4 +1,4 @@
-import { anonymizeComposerText, copyText, getChannelActionErrorMessage, getPostBodyText } from "../../shared/lib/helpers.js";
+import { anonymizeComposerText, copyText, getChannelActionErrorMessage, getPostBodyText, shareContent } from "../../shared/lib/helpers.js";
 import { getRoundStageIndex } from "../../entities/channel/config.js";
 import { isEntryOwnedByIdentity } from "../../shared/lib/anonymous-display.js";
 import { findCurrentMemberStatus } from "../round/model.js";
@@ -788,6 +788,41 @@ export const createFeedActions = ({ store, dataService, showToast }) => ({
                 message: "帖子正文已复制。"
             });
         } catch (error) {
+            showToast({
+                tone: "error",
+                message: getChannelActionErrorMessage("copy_post", error)
+            });
+        }
+    },
+    async sharePost(postId) {
+        const post = findFeedPostById(store.getState(), postId);
+        if (!post || post.isDeleted) {
+            showToast({
+                tone: "info",
+                message: "这条帖子当前不可分享。"
+            });
+            return;
+        }
+
+        const channelName = store.getState().runtimeState.channel?.name || "Soulmap";
+        const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+        const shareTextValue = `${post.authorName || "频道成员"}：${getPostBodyText(post).trim() || "来看这条频道内容"}`;
+
+        try {
+            const result = await shareContent({
+                title: `${channelName} · 频道内容`,
+                text: shareTextValue,
+                url: shareUrl
+            });
+            showToast({
+                tone: "success",
+                message: result === "native" ? "已打开系统分享。" : "分享内容已复制。"
+            });
+        } catch (error) {
+            if (error?.name === "AbortError") {
+                return;
+            }
+
             showToast({
                 tone: "error",
                 message: getChannelActionErrorMessage("copy_post", error)

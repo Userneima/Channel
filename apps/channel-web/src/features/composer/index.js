@@ -41,6 +41,60 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                 payload: partial
             });
         },
+        toggleEmojiMenu() {
+            const { emojiOpen } = store.getState().composerState;
+            store.dispatch({
+                type: "composer/set-field",
+                payload: {
+                    emojiOpen: !emojiOpen,
+                    mentionOpen: false,
+                    proxyWishOpen: false,
+                    aiDisclosureOpen: false
+                }
+            });
+        },
+        closeEmojiMenu() {
+            if (!store.getState().composerState.emojiOpen) {
+                return;
+            }
+            store.dispatch({
+                type: "composer/set-field",
+                payload: {
+                    emojiOpen: false
+                }
+            });
+        },
+        insertEmoji(emoji, { selectionStart, selectionEnd } = {}) {
+            const normalizedEmoji = String(emoji || "");
+            if (!normalizedEmoji) {
+                return null;
+            }
+
+            const state = store.getState().composerState;
+            const draftText = String(state.draftText || "");
+            const safeStart = Number.isInteger(selectionStart) ? selectionStart : state.selectionStart;
+            const safeEnd = Number.isInteger(selectionEnd) ? selectionEnd : state.selectionEnd;
+            const start = Math.max(0, Math.min(draftText.length, safeStart ?? draftText.length));
+            const end = Math.max(start, Math.min(draftText.length, safeEnd ?? start));
+            const nextDraftText = `${draftText.slice(0, start)}${normalizedEmoji}${draftText.slice(end)}`;
+            const nextCaret = start + normalizedEmoji.length;
+
+            store.dispatch({
+                type: "composer/set-field",
+                payload: {
+                    draftText: nextDraftText,
+                    selectionStart: nextCaret,
+                    selectionEnd: nextCaret,
+                    emojiOpen: false,
+                    expanded: true
+                }
+            });
+            void refreshAnonymousPreview();
+            return {
+                start: nextCaret,
+                end: nextCaret
+            };
+        },
         async refreshAnonymousTextPreview(options = {}) {
             return refreshAnonymousPreview(options);
         },
@@ -50,7 +104,8 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                 type: "composer/set-field",
                 payload: {
                     mentionOpen: !mentionOpen,
-                    proxyWishOpen: false
+                    proxyWishOpen: false,
+                    emojiOpen: false
                 }
             });
         },
@@ -60,7 +115,8 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
                 type: "composer/set-field",
                 payload: {
                     proxyWishOpen: !proxyWishOpen,
-                    mentionOpen: false
+                    mentionOpen: false,
+                    emojiOpen: false
                 }
             });
         },
@@ -172,7 +228,8 @@ export const createComposerActions = ({ store, dataService, showToast, feedActio
             store.dispatch({
                 type: "composer/set-field",
                 payload: {
-                    aiDisclosureOpen: !aiDisclosureOpen
+                    aiDisclosureOpen: !aiDisclosureOpen,
+                    emojiOpen: false
                 }
             });
         },

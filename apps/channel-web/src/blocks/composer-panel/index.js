@@ -41,7 +41,7 @@ export const mountComposerPanelBlock = ({ root, store, actions }) => {
     let previousExpanded = null;
     let previousAnonymousMode = null;
     let previousAliasSignature = "";
-    let previousMentionSignature = "";
+    let previousToolbarOverlaySignature = "";
     let previousStageSignature = "";
     let previousClaimSignature = "";
     let previousAudioSignature = "";
@@ -216,7 +216,7 @@ export const mountComposerPanelBlock = ({ root, store, actions }) => {
                 || previousAnonymousMode !== vm.anonymousMode
                 || previousStageSignature !== `${vm.stageInfo.value}:${vm.stageAllowsPosting ? 1 : 0}:${vm.anonymousLocked ? 1 : 0}`
                 || previousClaimSignature !== `${vm.claimSelection?.postId || ""}:${vm.claimSelection?.authorName || ""}:${vm.claimSelection?.previewText || ""}`
-                || previousMentionSignature !== `${vm.mentionOpen ? 1 : 0}:${vm.mentionTarget?.name || ""}:${vm.mentionTarget?.avatar || ""}`
+                || previousToolbarOverlaySignature !== `${vm.mentionOpen ? 1 : 0}:${vm.proxyWishOpen ? 1 : 0}:${vm.aiDisclosureOpen ? 1 : 0}:${vm.emojiOpen ? 1 : 0}:${vm.mentionTarget?.name || ""}:${vm.proxyWishTarget?.name || ""}`
                 || previousAliasSignature !== `${vm.activeAlias?.key || ""}:${vm.activeAlias?.name || ""}:${vm.activeAlias?.avatar || ""}`
                 || previousAudioSignature !== `${vm.audioRecording ? 1 : 0}:${vm.audioDraft?.id || ""}:${vm.audioDraft?.url || ""}`;
 
@@ -228,7 +228,7 @@ export const mountComposerPanelBlock = ({ root, store, actions }) => {
                 previousAnonymousMode = vm.anonymousMode;
                 previousStageSignature = `${vm.stageInfo.value}:${vm.stageAllowsPosting ? 1 : 0}:${vm.anonymousLocked ? 1 : 0}`;
                 previousClaimSignature = `${vm.claimSelection?.postId || ""}:${vm.claimSelection?.authorName || ""}:${vm.claimSelection?.previewText || ""}`;
-                previousMentionSignature = `${vm.mentionOpen ? 1 : 0}:${vm.mentionTarget?.name || ""}:${vm.mentionTarget?.avatar || ""}`;
+                previousToolbarOverlaySignature = `${vm.mentionOpen ? 1 : 0}:${vm.proxyWishOpen ? 1 : 0}:${vm.aiDisclosureOpen ? 1 : 0}:${vm.emojiOpen ? 1 : 0}:${vm.mentionTarget?.name || ""}:${vm.proxyWishTarget?.name || ""}`;
                 previousAliasSignature = `${vm.activeAlias?.key || ""}:${vm.activeAlias?.name || ""}:${vm.activeAlias?.avatar || ""}`;
                 previousAudioSignature = `${vm.audioRecording ? 1 : 0}:${vm.audioDraft?.id || ""}:${vm.audioDraft?.url || ""}`;
                 if (!vm.canCompose) {
@@ -294,7 +294,7 @@ export const mountComposerPanelBlock = ({ root, store, actions }) => {
             previousAnonymousMode = vm.anonymousMode;
             previousStageSignature = `${vm.stageInfo.value}:${vm.stageAllowsPosting ? 1 : 0}:${vm.anonymousLocked ? 1 : 0}`;
             previousClaimSignature = `${vm.claimSelection?.postId || ""}:${vm.claimSelection?.authorName || ""}:${vm.claimSelection?.previewText || ""}`;
-            previousMentionSignature = `${vm.mentionOpen ? 1 : 0}:${vm.mentionTarget?.name || ""}:${vm.mentionTarget?.avatar || ""}`;
+            previousToolbarOverlaySignature = `${vm.mentionOpen ? 1 : 0}:${vm.proxyWishOpen ? 1 : 0}:${vm.aiDisclosureOpen ? 1 : 0}:${vm.emojiOpen ? 1 : 0}:${vm.mentionTarget?.name || ""}:${vm.proxyWishTarget?.name || ""}`;
             previousAliasSignature = `${vm.activeAlias?.key || ""}:${vm.activeAlias?.name || ""}:${vm.activeAlias?.avatar || ""}`;
             previousAudioSignature = `${vm.audioRecording ? 1 : 0}:${vm.audioDraft?.id || ""}:${vm.audioDraft?.url || ""}`;
         }

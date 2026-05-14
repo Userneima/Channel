@@ -302,6 +302,21 @@ export const copyText = async (text) => {
     await navigator.clipboard.writeText(text);
 };
 
+export const shareContent = async ({ title = "", text = "", url = "" } = {}) => {
+    if (typeof navigator.share === "function") {
+        await navigator.share({
+            title: String(title || ""),
+            text: String(text || ""),
+            url: String(url || "")
+        });
+        return "native";
+    }
+
+    const fallbackText = [text, url].filter(Boolean).join("\n").trim() || title;
+    await copyText(fallbackText);
+    return "copied";
+};
+
 const channelRolePriority = {
     owner: 0,
     admin: 1,

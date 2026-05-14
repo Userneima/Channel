@@ -40,6 +40,26 @@ const buildRecordingButton = (vm, extraClass = "") => `
     </button>
 `;
 
+const buildEmojiMenu = (vm) => `
+    <div class="composer-panel__emoji-wrap">
+        <button class="composer-panel__icon-button composer-panel__icon-button--toggle ${vm.emojiOpen ? "is-active" : ""}" data-composer-action="toggle-emoji" type="button" title="表情">
+            <span class="material-icons-outlined">sentiment_satisfied_alt</span>
+        </button>
+        <div class="composer-panel__emoji-menu ${vm.emojiOpen ? "is-open" : ""}">
+            ${vm.emojiGroups.map((group) => `
+                <section class="composer-panel__emoji-group">
+                    <div class="composer-panel__emoji-group-title">${escapeHtml(group.label)}</div>
+                    <div class="composer-panel__emoji-items">
+                        ${group.items.map((emoji) => `
+                            <button class="composer-panel__emoji-option" data-emoji-value="${escapeHtml(emoji)}" type="button">${escapeHtml(emoji)}</button>
+                        `).join("")}
+                    </div>
+                </section>
+            `).join("")}
+        </div>
+    </div>
+`;
+
 const buildAudioDraft = (vm) => vm.audioDraft ? `
     <div class="composer-panel__audio-draft">
         <div class="composer-panel__audio-draft-copy">
@@ -161,9 +181,7 @@ export const composerPanelTemplate = (vm) => `
                     <span class="composer-panel__identity-name" data-ref="identity-name">${escapeHtml(vm.identityDisplay.name)}</span>
                 </button>
                 <div class="composer-panel__tools">
-                    <button class="composer-panel__icon-button" type="button" title="表情">
-                        <span class="material-icons-outlined">sentiment_satisfied_alt</span>
-                    </button>
+                    ${buildEmojiMenu(vm)}
                     ${vm.stageInfo.requiresMention && vm.canChooseMentionTarget ? buildMentionMenu(vm) : ""}
                     ${vm.canProxyWish ? buildProxyWishMenu(vm) : ""}
                     ${vm.anonymousLocked ? "" : `
@@ -289,7 +307,6 @@ export const composerPanelTemplate = (vm) => `
                     <div class="composer-panel__footer composer-panel__footer--expanded">
                         <div class="composer-panel__footer-right">
                             <div class="composer-panel__count" data-ref="char-count">${vm.charCount}/1000</div>
-                            <div class="composer-panel__stage-pill">${escapeHtml(vm.stageInfo.label)}</div>
                             <button class="composer-panel__submit" data-ref="submit-button" ${vm.canSubmit ? "" : "disabled"} type="button">${escapeHtml(vm.submitLabel)}</button>
                         </div>
                     </div>

@@ -278,4 +278,31 @@ describe("composer panel interactions", () => {
         expect(root.textContent).not.toContain("发完自动换马甲");
         expect(root.querySelector(".composer-panel__anonymous-avatar")).toBeNull();
     });
+
+    it("opens the emoji picker and inserts the selected emoji into the draft", async () => {
+        store.dispatch({ type: "composer/expand" });
+        store.dispatch({
+            type: "composer/set-field",
+            payload: {
+                draftText: "今天的愿望",
+                selectionStart: 5,
+                selectionEnd: 5
+            }
+        });
+
+        block.render();
+
+        root.querySelector("[data-composer-action='toggle-emoji']")?.click();
+        block.render();
+
+        const emojiButton = root.querySelector("[data-emoji-value='🎉']");
+        expect(emojiButton).toBeTruthy();
+
+        emojiButton.click();
+        await Promise.resolve();
+        block.render();
+
+        expect(store.getState().composerState.draftText).toBe("今天的愿望🎉");
+        expect(store.getState().composerState.emojiOpen).toBe(false);
+    });
 });

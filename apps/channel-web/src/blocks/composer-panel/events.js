@@ -14,6 +14,9 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
         if (!target.closest(".composer-panel__proxy-wrap")) {
             actions.closeProxyWishMenu();
         }
+        if (!target.closest(".composer-panel__emoji-wrap")) {
+            actions.closeEmojiMenu();
+        }
     });
 
     root.addEventListener("click", (event) => {
@@ -22,6 +25,32 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
 
         if (disclosureOption) {
             actions.selectAiDisclosure(disclosureOption.dataset.aiDisclosureValue);
+            return;
+        }
+
+        const emojiOption = event.target.closest("[data-emoji-value]");
+        if (emojiOption) {
+            const draftInput = root.querySelector("[data-ref='draft-input']");
+            const selectionStart = draftInput instanceof HTMLTextAreaElement && document.activeElement === draftInput
+                ? draftInput.selectionStart
+                : undefined;
+            const selectionEnd = draftInput instanceof HTMLTextAreaElement && document.activeElement === draftInput
+                ? draftInput.selectionEnd
+                : undefined;
+            const nextSelection = actions.insertEmoji?.(emojiOption.dataset.emojiValue || "", {
+                selectionStart,
+                selectionEnd
+            });
+            if (draftInput instanceof HTMLTextAreaElement && nextSelection) {
+                requestAnimationFrame(() => {
+                    const nextDraftInput = root.querySelector("[data-ref='draft-input']");
+                    if (!(nextDraftInput instanceof HTMLTextAreaElement)) {
+                        return;
+                    }
+                    nextDraftInput.focus();
+                    nextDraftInput.setSelectionRange(nextSelection.start, nextSelection.end);
+                });
+            }
             return;
         }
 
@@ -64,6 +93,10 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
         }
         if (action === "toggle-anonymous") {
             actions.toggleAnonymousMode();
+            return;
+        }
+        if (action === "toggle-emoji") {
+            actions.toggleEmojiMenu();
             return;
         }
         if (action === "toggle-mention") {
@@ -115,9 +148,27 @@ export const attachComposerPanelEvents = ({ root, actions }) => {
 
         if (target.matches("[data-ref='draft-input']")) {
             actions.setComposerField({ draftText: target.value });
+            actions.setComposerField({
+                selectionStart: target.selectionStart || 0,
+                selectionEnd: target.selectionEnd || 0
+            });
             void actions.refreshAnonymousTextPreview();
         }
     });
+
+    const syncDraftSelection = (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLTextAreaElement) || !target.matches("[data-ref='draft-input']")) {
+            return;
+        }
+        actions.setComposerField({
+            selectionStart: target.selectionStart || 0,
+            selectionEnd: target.selectionEnd || 0
+        });
+    };
+
+    root.addEventListener("keyup", syncDraftSelection);
+    root.addEventListener("mouseup", syncDraftSelection);
 
     root.addEventListener("change", (event) => {
         const target = event.target;

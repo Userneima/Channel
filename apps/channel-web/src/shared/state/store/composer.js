@@ -11,6 +11,7 @@ export const applyComposerActions = (draft, action) => {
         draft.composerState.aiDisclosureOpen = false;
         draft.composerState.mentionOpen = false;
         draft.composerState.proxyWishOpen = false;
+        draft.composerState.emojiOpen = false;
         return true;
     case "composer/add-images":
         draft.composerState.images.push(...action.payload.images.map((image) => ({ ...image })));
@@ -53,8 +54,11 @@ export const applyComposerActions = (draft, action) => {
         draft.composerState.error = null;
         draft.composerState.mentionOpen = false;
         draft.composerState.proxyWishOpen = false;
+        draft.composerState.emojiOpen = false;
         draft.composerState.aiDisclosureOpen = false;
         draft.composerState.boardOpen = false;
+        draft.composerState.selectionStart = 0;
+        draft.composerState.selectionEnd = 0;
         return true;
     case "composer/toggle-anonymous":
         draft.composerState.anonymousMode = !draft.composerState.anonymousMode;
