@@ -73,6 +73,14 @@ const buildAudioDraft = (vm) => vm.audioDraft ? `
     </div>
 ` : "";
 
+const buildAnonymousAssistToggle = ({ checked, ref, label, icon }) => `
+    <label class="composer-panel__assist-toggle ${checked ? "is-active" : ""}">
+        <input ${checked ? "checked" : ""} data-ref="${escapeHtml(ref)}" type="checkbox" />
+        <span class="material-icons-outlined">${escapeHtml(icon)}</span>
+        <span>${escapeHtml(label)}</span>
+    </label>
+`;
+
 export const composerPanelTemplate = (vm) => `
     <div class="composer-panel ${vm.hideInlineComposer ? "composer-panel--hidden" : ""}">
         ${vm.hideInlineComposer ? `` : !vm.canCompose ? `
@@ -221,33 +229,29 @@ export const composerPanelTemplate = (vm) => `
                 </div>
             </div>
             ${vm.anonymousMode ? `
-                <div class="composer-panel__anonymous-panel">
-                    <div class="composer-panel__anonymous-card composer-panel__anonymous-card--controls">
-                            <div class="composer-panel__anonymous-copy composer-panel__anonymous-copy--controls">
-                            <div class="composer-panel__anonymous-head">
-                                <label class="composer-panel__anonymous-checkbox">
-                                    <input ${vm.anonymousTextRewrite ? "checked" : ""} data-ref="anonymous-text-rewrite" type="checkbox" />
-                                    <span>AI 润色文本</span>
-                                </label>
-                                <label class="composer-panel__anonymous-checkbox">
-                                    <input ${vm.aiImageReshape ? "checked" : ""} data-ref="ai-image-reshape" type="checkbox" />
-                                    <span>AI 重塑图片</span>
-                                </label>
-                                <div class="composer-panel__anonymous-help">
-                                    <button class="composer-panel__anonymous-help-trigger" type="button" title="匿名说明">
-                                        <span class="material-icons-outlined">help_outline</span>
-                                    </button>
-                                    <div class="composer-panel__anonymous-help-popover">
-                                        <p>普通成员只会看到这层马甲，管理员可切换到真实身份视角。</p>
-                                        <p>匿名发出后会自动刷新成下一张马甲。</p>
-                                        <p>如果打开 AI 润色，会先给你一版可预览的文本，再决定是否发出。</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="composer-panel__anonymous-preview ${vm.showAnonymousTextPreview ? "" : "is-hidden"} ${vm.anonymousPreviewStatus === "loading" ? "is-loading" : ""}" data-ref="anonymous-preview">
-                            <div class="composer-panel__anonymous-preview-label">${vm.anonymousPreviewStatus === "loading" ? "AI 润色中" : "AI 润色预览"}</div>
-                            <div class="composer-panel__anonymous-preview-body" data-ref="anonymous-preview-body">${escapeHtml(vm.anonymousPreviewDisplayText)}</div>
+                <div class="composer-panel__assist-strip">
+                    <div class="composer-panel__assist-group">
+                        ${buildAnonymousAssistToggle({
+                            checked: vm.anonymousTextRewrite,
+                            ref: "anonymous-text-rewrite",
+                            label: "润色文本",
+                            icon: "auto_awesome"
+                        })}
+                        ${buildAnonymousAssistToggle({
+                            checked: vm.aiImageReshape,
+                            ref: "ai-image-reshape",
+                            label: "重塑图片",
+                            icon: "imagesmode"
+                        })}
+                    </div>
+                    <div class="composer-panel__anonymous-help">
+                        <button class="composer-panel__anonymous-help-trigger" type="button" title="匿名说明">
+                            <span class="material-icons-outlined">help_outline</span>
+                        </button>
+                        <div class="composer-panel__anonymous-help-popover">
+                            <p>普通成员只会看到这层马甲，管理员可切换到真实身份视角。</p>
+                            <p>匿名发出后会自动刷新成下一张马甲。</p>
+                            <p>如果打开 AI 润色，会先给你一版可预览的文本，再决定是否发出。</p>
                         </div>
                     </div>
                 </div>
@@ -289,6 +293,12 @@ export const composerPanelTemplate = (vm) => `
                     <span class="sr-only">帖子内容</span>
                     <textarea class="composer-panel__textarea composer-panel__textarea--expanded" data-ref="draft-input" placeholder="${escapeHtml(vm.placeholder)}">${escapeHtml(vm.draftText)}</textarea>
                 </label>
+                ${vm.anonymousMode ? `
+                    <div class="composer-panel__anonymous-preview composer-panel__anonymous-preview--inline ${vm.showAnonymousTextPreview ? "" : "is-hidden"} ${vm.anonymousPreviewStatus === "loading" ? "is-loading" : ""}" data-ref="anonymous-preview">
+                        <div class="composer-panel__anonymous-preview-label">${vm.anonymousPreviewStatus === "loading" ? "AI 润色中" : "AI 润色预览"}</div>
+                        <div class="composer-panel__anonymous-preview-body" data-ref="anonymous-preview-body">${escapeHtml(vm.anonymousPreviewDisplayText)}</div>
+                    </div>
+                ` : ""}
                 ${vm.audioRecording ? `
                     <div class="composer-panel__recording-status">
                         <span class="material-icons-outlined">mic</span>

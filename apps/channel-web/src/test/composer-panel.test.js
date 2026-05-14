@@ -252,7 +252,7 @@ describe("composer panel interactions", () => {
         expect(root.textContent).not.toContain("这位国王的愿望");
     });
 
-    it("shows AI text preview controls in anonymous mode and removes the auto-rotate toggle", () => {
+    it("shows compact anonymous assist controls and removes the duplicate identity row", () => {
         store.dispatch({
             type: "composer/toggle-anonymous"
         });
@@ -272,10 +272,12 @@ describe("composer panel interactions", () => {
 
         block.render();
 
-        expect(root.textContent).toContain("AI 润色文本");
+        expect(root.textContent).toContain("润色文本");
+        expect(root.textContent).toContain("重塑图片");
         expect(root.textContent).toContain("AI 润色预览");
         expect(root.textContent).toContain("更中性的看法是这边来试试");
         expect(root.textContent).not.toContain("发完自动换马甲");
+        expect(root.querySelector(".composer-panel__assist-strip")).toBeTruthy();
         expect(root.querySelector(".composer-panel__anonymous-avatar")).toBeNull();
     });
 
